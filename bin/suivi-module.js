@@ -2,7 +2,7 @@
 // suivi-module — installe le skill de tableau de suivi de module dans les assistants IA de code.
 // Aucune dépendance : Node.js 18 ou plus suffit.
 
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, rmdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -126,6 +126,20 @@ function copier(chemin, dryRun) {
   writeFileSync(join(chemin, MARQUE), VERSION + "\n");
 }
 
+// Après un retrait : supprimer les dossiers parents devenus vides (skills/, puis .cursor/…),
+// sans jamais remonter au-delà du projet ou du dossier personnel, ni toucher un dossier non vide.
+function nettoyerParents(chemin, global) {
+  const limite = base(global);
+  let d = dirname(chemin);
+  for (let i = 0; i < 2 && d !== limite && d.startsWith(limite); i++) {
+    try {
+      if (readdirSync(d).length) break;
+      rmdirSync(d);
+    } catch { break; }
+    d = dirname(d);
+  }
+}
+
 function versionInstallee(chemin) {
   try { return readFileSync(join(chemin, MARQUE), "utf8").trim(); } catch { return null; }
 }
@@ -202,7 +216,10 @@ function uninstall(o) {
     return;
   }
   for (const [chemin, noms] of chemins) {
-    if (!o.dryRun) rmSync(chemin, { recursive: true, force: true });
+    if (!o.dryRun) {
+      rmSync(chemin, { recursive: true, force: true });
+      nettoyerParents(chemin, o.global);
+    }
     console.log(`  ✓ ${noms.join(", ")} : retiré de ${affiche(chemin)}${o.dryRun ? " (simulation)" : ""}`);
   }
   console.log("Vos tableaux de suivi (dossier suivi/ ou artefacts) sont conservés.");

@@ -244,6 +244,7 @@ install.sh, install.ps1              installation en une commande
 
 | Version | Nouveautés |
 |---|---|
+| 1.4.1 | `uninstall` supprime aussi les dossiers d'assistant devenus vides, qui faussaient la détection au `init` suivant |
 | 1.4.0 | Commande `npx suivi-module init` : installation en une commande dans Claude Code et 23 autres assistants (Cursor, Copilot, Codex, Gemini CLI, Windsurf…), détection de l'assistant du projet, `update`, `uninstall`, `list`, `--global`, `--dry-run` |
 | 1.3.0 | Artefacts comme format principal : un artefact par module et un artefact d'accueil, mise à jour des artefacts sans perte des saisies, publication en artefacts de tableaux produits localement, dépôt joint en archive ou cloné depuis GitHub sur claude.ai |
 | 1.2.0 | Toutes technologies : modèle de données de 11 piles, détection des modules selon les conventions de chaque framework, dépendances par les imports et les relations entre entités, commandes de la boucle de dev selon la pile |
