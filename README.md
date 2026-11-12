@@ -1,142 +1,195 @@
-# suivi-module — un tableau de suivi de module pour Claude
+# suivi-module
 
-Un skill qui fabrique et tient à jour le **tableau de suivi** d'un module, ou de tous les
-modules d'un projet logiciel, en explorant le dépôt lui-même : le développeur n'a qu'une
-phrase à dire.
+**Le tableau de suivi de vos modules, construit par Claude à partir de votre dépôt.**
 
-Le tableau compte 9 onglets :
+Installez le skill, puis dites une phrase à Claude Code :
+
+```
+Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules
+```
+
+Claude explore le dépôt seul, sans poser de questions, et produit pour chaque module un
+tableau de bord : ce qu'il fait, comment le prendre en main, ce qui est livré, ce qui reste à
+faire et ce qui attend une décision. Une page d'accueil récapitule l'avancement de tous les
+modules.
+
+## Démarrage rapide
+
+```bash
+# 1. Depuis la racine de votre projet (macOS, Linux, WSL)
+curl -fsSL https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.sh | bash
+
+# 2. Dans Claude Code
+#    « Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules »
+
+# 3. Ouvrir le résultat
+open suivi/index.html        # macOS ; xdg-open sous Linux, start sous Windows
+```
+
+## Ce que vous obtenez
+
+```
+suivi/
+  index.html                 page d'accueil : avancement de tous les modules
+  <module>/index.html        tableau du module, à ouvrir dans le navigateur
+  <module>/remplissage.json  ses données, versionnées avec le code
+```
+
+Chaque tableau compte jusqu'à 9 onglets :
 
 | Onglet | Contenu |
 |---|---|
 | Vue d'ensemble | Définition, but, usage, architecture en couches, liens avec les autres modules |
 | Démarrage | Le parcours de prise en main, à cocher |
 | Lecture | Les documents de référence mis en forme, à lire dans l'ordre |
-| Modèle MERISE | MCD interactif, dictionnaire, règles de gestion, écarts avec l'existant |
-| Exigences & recette | Couverture des exigences, cas de recette à exécuter, par périmètre |
-| Plan de développement | Lots par phase, carte des dépendances, cycle de vie |
+| Modèle MERISE | MCD interactif déduit du code, dictionnaire, règles de gestion, écarts |
+| Exigences & recette | Couverture des exigences, cas de recette, par périmètre |
+| Plan de développement | Lots par phase, carte des dépendances entre modules, cycle de vie |
 | Boucle de dev | Les commandes du quotidien, à copier |
-| Fonctionnalités | Par palier, avec statut et avancement |
+| Fonctionnalités | Par palier, avec statut, avancement et preuve |
 | Arbitrages & décisions | Questions ouvertes et choix actés |
 
-Un onglet n'apparaît que si les documents du projet permettent de le remplir : le skill
-préfère un onglet absent à un onglet rempli de suppositions.
+Un onglet n'apparaît que si le dépôt permet de le remplir : le skill préfère un onglet absent
+à un onglet rempli de suppositions.
 
 ## Installation
 
-### Claude Code : comme plugin (recommandé)
-
-Dans Claude Code :
+### Claude Code, comme plugin (tous vos projets)
 
 ```
 /plugin marketplace add dav9fulldev/suivi-module-skill
 /plugin install suivi-module@suivi-module
 ```
 
-### Claude Code : dans un seul projet, en une commande
+### Claude Code, dans un seul projet
 
-Depuis la racine du projet, le skill est copié dans `.claude/skills/suivi-module`.
-
-Linux, macOS, WSL :
+Depuis la racine du projet ; le skill est copié dans `.claude/skills/suivi-module`.
 
 ```bash
+# macOS, Linux, WSL
 curl -fsSL https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.sh | bash
 ```
 
-Windows PowerShell :
-
 ```powershell
+# Windows PowerShell
 irm https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.ps1 | iex
 ```
 
-Pour l'installer pour tous vos projets plutôt que pour un seul : ajouter `-s -- --global`
-après `bash` (Linux, macOS), ou lancer `$env:SUIVI_MODULE_GLOBAL = "1"` avant la commande
-PowerShell.
+Pour l'installer pour tous vos projets plutôt que pour un seul : `… | bash -s -- --global`
+(macOS, Linux), ou `$env:SUIVI_MODULE_GLOBAL = "1"` avant la commande PowerShell.
 
 ### claude.ai
 
-Télécharger [`suivi-module.skill`](./suivi-module.skill) puis l'ajouter à vos skills en
+Téléchargez [`suivi-module.skill`](./suivi-module.skill) puis ajoutez-le à vos skills en
 suivant [Using skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude).
+Sur claude.ai, le skill crée des artefacts privés à partir des fichiers que vous joignez.
+
+### Prérequis
+
+Python 3 (les scripts n'ont aucune dépendance externe) et git pour l'historique.
 
 ## Utilisation
 
-Une phrase suffit, depuis la racine du projet dans Claude Code :
+| Vous dites | Claude fait |
+|---|---|
+| « Utilise le skill suivi-module pour créer le tableau de suivi du module diligences » | Explore le dépôt et crée `suivi/diligence/` |
+| « … de tous les modules » | Crée un tableau par module détecté, plus `suivi/index.html` |
+| « … pour mettre à jour le tableau de suivi de tous les modules » | Relit le dépôt et met à jour sans perdre vos saisies |
+| « Relis le tableau de suivi du module diligences : qu'est-ce qui a changé ? » | Compare avec la version commitée et résume |
+| « Passe la fonctionnalité f03 en terminé » | Modifie le tableau et régénère la page |
 
-```
-Utilise le skill suivi-module pour créer le tableau de suivi du module diligences
-Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules
-```
+Le nom du module peut être celui du code (`diligences`) ou un nom métier (« le module RH ») :
+Claude cherche la correspondance dans les documents.
 
-Claude explore alors le dépôt lui-même, sans poser de questions : pile technique, modules,
-écrans, fichiers serveur, aide, documents qui en parlent, modèle de données, dépendances entre
-modules, historique git, travail non commité. Il produit :
+**Vos saisies sont conservées.** Les étapes cochées, les décisions prises, les résultats de
+recette et les éléments ajoutés à la main survivent aux mises à jour. Les coches faites dans
+la page restent dans votre navigateur ; le bouton « Exporter » télécharge un
+`remplissage.json` à remettre dans `suivi/<module>/` pour les partager avec l'équipe.
 
-- `suivi/<module>/index.html` : le tableau du module, à ouvrir dans le navigateur ;
-- `suivi/<module>/remplissage.json` : ses données, versionnées avec le code ;
-- `suivi/index.html` : la page d'accueil qui récapitule tous les modules.
+## Comment ça marche
 
-Chaque statut est justifié par une preuve (fichier, test, commit) ; ce qui reste incertain
-est listé « à confirmer » dans le compte rendu. Le modèle MERISE est déduit du modèle de
-données et la carte des dépendances des imports et des relations entre entités.
+1. **Exploration.** Un script dresse l'inventaire du dépôt : pile technique, modules, fichiers
+   par couche, documents qui parlent de chaque module, modèle de données, dépendances entre
+   modules, historique git, fichiers non commités, tests, TODO.
+2. **Lecture ciblée.** Claude lit les documents du projet (CLAUDE.md, spécifications,
+   décisions, aide) puis vérifie dans le code ce qu'ils décrivent.
+3. **Preuves.** Chaque statut cite sa preuve (fichier, fonction, test, commit). Du code
+   modifié mais non commité reste « à vérifier ». En cas de doute, le statut le moins avancé
+   l'emporte.
+4. **Compte rendu.** Ce qui a été créé, ce qui demande votre attention (travail non commité,
+   arbitrages ouverts, secrets trouvés) et une courte liste « À confirmer ». Aucune question
+   n'est posée en cours de route.
 
 ## Technologies
-
-Le skill s'adapte à la pile du projet :
 
 | | Reconnu automatiquement |
 |---|---|
 | Modèle de données | Prisma, SQL et migrations SQL, Django, SQLAlchemy, TypeORM, JPA/Hibernate, Entity Framework Core, Rails, Laravel, Mongoose, Drizzle |
 | Structure des modules | Next.js, React, Vue, Angular, Svelte, NestJS, Express, Django, Flask, FastAPI, Rails, Laravel, Symfony, Spring Boot, ASP.NET Core, Go, architecture par couches |
 | Dépendances entre modules | Imports JS/TS, Python, Java/Kotlin, PHP ; relations entre entités pour toutes les piles |
-| Commandes de la boucle de dev | `package.json`, `Makefile`, `composer.json`, Docker Compose, et conventions des frameworks ci-dessus |
+| Commandes de la boucle de dev | `package.json`, `Makefile`, `composer.json`, Docker Compose, conventions des frameworks |
 
 Pour une technologie absente du tableau (GORM, Sequelize, Doctrine, Ecto…), Claude lit
 lui-même les fichiers de modèle et les écrit dans un format neutre, d'où le même modèle MERISE
-est généré.
+est généré. Les commandes déduites des conventions d'un framework sont signalées « à
+confirmer ».
 
-Ensuite :
+## Mettre à jour le skill
 
-```
-Utilise le skill suivi-module pour mettre à jour le tableau de suivi de tous les modules
-Relis le tableau de suivi du module diligences : qu'est-ce qui a changé ?
-```
+- **Installé avec `curl` ou PowerShell** : relancez la même commande, elle remplace l'ancienne version.
+- **Installé comme plugin** : mettez à jour le marketplace `suivi-module` depuis le menu `/plugin` de Claude Code.
 
-La mise à jour garde ce que l'équipe a saisi : étapes cochées, décisions prises, résultats de
-recette, éléments ajoutés à la main. Les coches faites dans la page restent dans le
-navigateur ; le bouton « Exporter » télécharge un `remplissage.json` à remettre dans le projet.
-
-Sur claude.ai, le même skill crée des artefacts privés à partir des fichiers joints.
-
-Prérequis : Python 3 (scripts sans dépendance externe), et git pour l'historique.
+Vos tableaux (`suivi/`) ne sont pas touchés par une mise à jour du skill.
 
 ## Confidentialité
 
-Avant tout remplissage, `preparer_remplissage.py` bloque ce qui ressemble à un secret :
-mot de passe, clé d'API, clé privée, adresse IP interne, identifiants dans une URL, chemin
-personnel. Le JSON du mode local est commité avec le code, et la base d'un artefact est
-lisible par toute personne avec qui il est partagé : ces données ne doivent jamais contenir
-de secrets.
+Avant tout remplissage, un script bloque ce qui ressemble à un secret : mot de passe, clé
+d'API, clé privée, adresse IP interne, identifiants dans une URL, chemin personnel. Le JSON
+est commité avec le code et un artefact claude.ai est lisible par qui le reçoit : ces données
+ne doivent jamais contenir de secrets. Si votre dépôt lui-même en contient, le compte rendu
+vous le signale.
 
-## Contenu
+## Dépannage
+
+| Symptôme | Solution |
+|---|---|
+| `python: command not found` | Installer Python 3 ; sur macOS, accepter l'installation des outils de ligne de commande proposée au premier `git` ou `python3` |
+| Un module attendu n'est pas détecté | Le nommer explicitement : « crée le tableau de suivi du module X ». Claude complète par sa propre lecture de l'arborescence |
+| Le modèle MERISE est vide ou incomplet | Demander : « complète le modèle MERISE du module X à partir des fichiers de modèle ». Claude passe par le format neutre |
+| Mes coches ont disparu après une mise à jour | Elles étaient restées dans le navigateur : cliquer d'abord « Exporter », remplacer `suivi/<module>/remplissage.json`, puis relancer la mise à jour |
+| Sur claude.ai, la page affiche « Hors ligne » | Demander à Claude de republier l'artefact avec la capacité `db` |
+| `install.ps1` échoue | Utiliser l'installation comme plugin, qui fonctionne sur tous les systèmes, et signaler le problème dans une issue |
+
+## Contenu du dépôt
 
 ```
-.claude-plugin/marketplace.json   déclaration du plugin pour Claude Code
+.claude-plugin/marketplace.json      déclaration du plugin pour Claude Code
 skills/suivi-module/
-  SKILL.md                        instructions suivies par Claude
-  assets/template.html            la page du tableau (aucune donnée)
-  references/donnees.md           forme des données de chaque onglet
-  references/exploration.md       comment déduire chaque onglet du dépôt, règles de preuve
-  scripts/explorer_projet.py      inventaire du dépôt : pile, modules, couches, documents, entités, dépendances, git
-  scripts/modeles_donnees.py      lecture du modèle de données de 11 technologies, format neutre
-  scripts/modele_vers_mcd.py      modèle MERISE déduit du modèle de données
-  scripts/preparer_remplissage.py vérification (statuts, références, secrets) et lots
+  SKILL.md                           instructions suivies par Claude
+  assets/template.html               la page d'un tableau (aucune donnée)
+  references/exploration.md          comment déduire chaque onglet du dépôt, règles de preuve
+  references/donnees.md              forme des données de chaque onglet
+  scripts/explorer_projet.py         inventaire : pile, modules, couches, documents, entités, dépendances, git
+  scripts/modeles_donnees.py         lecture du modèle de données de 11 technologies, format neutre
+  scripts/modele_vers_mcd.py         modèle MERISE déduit du modèle de données
+  scripts/preparer_remplissage.py    vérification (statuts, références, secrets) et lots
   scripts/construire_page_locale.py  page d'un module, données embarquées
-  scripts/construire_index.py     page d'accueil de tous les modules
+  scripts/construire_index.py        page d'accueil de tous les modules
   scripts/fusionner_remplissage.py   mise à jour sans perte des saisies
-  scripts/comparer_lectures.py    ce qui a changé entre deux lectures
-suivi-module.skill                archive pour claude.ai
-install.sh, install.ps1           installation en une commande
+  scripts/comparer_lectures.py       ce qui a changé entre deux lectures
+suivi-module.skill                   archive pour claude.ai
+install.sh, install.ps1              installation en une commande
 ```
 
-## Licence
+## Versions
 
-MIT, voir [LICENSE](./LICENSE).
+| Version | Nouveautés |
+|---|---|
+| 1.2.0 | Toutes technologies : modèle de données de 11 piles, détection des modules selon les conventions de chaque framework, dépendances par les imports et les relations entre entités, commandes de la boucle de dev selon la pile |
+| 1.1.0 | Exploration automatique du dépôt sans question, mode « tous les modules » et page d'accueil, statuts justifiés par des preuves, détection du travail non commité, mise à jour sans perte des saisies |
+| 1.0.0 | Tableau de suivi à 9 onglets, en artefact claude.ai ou en page locale, vérification des secrets |
+
+## Auteur et licence
+
+Créé par Brou David Yao ([@dav9fulldev](https://github.com/dav9fulldev)). Licence MIT, voir
+[LICENSE](./LICENSE). Les suggestions et corrections sont bienvenues dans les issues du dépôt.
