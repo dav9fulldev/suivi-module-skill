@@ -19,22 +19,25 @@ produit à la place des pages HTML dans le projet, avec le même contenu.
 
 ## Démarrage rapide
 
-**Sur claude.ai (artefacts)**
-1. Ajoutez [`suivi-module.skill`](./suivi-module.skill) à vos skills ([mode d'emploi](https://support.claude.com/en/articles/12512180-using-skills-in-claude)).
-2. Joignez une archive `.zip` de votre dépôt, ou donnez le lien d'un dépôt GitHub public.
-3. Dites : « Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules ».
-
-**Dans Claude Code**
-
 ```bash
-# Depuis la racine de votre projet (macOS, Linux, WSL)
-curl -fsSL https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.sh | bash
+cd mon-projet
+npx suivi-module init
 ```
 
-Puis dites la même phrase. Si l'outil d'artefacts est disponible, vous obtenez des artefacts ;
-sinon des pages dans `suivi/` (`open suivi/index.html` sur macOS). Ces pages peuvent ensuite
-être publiées en artefacts : joignez le dossier `suivi/` sur claude.ai et dites « publie mes
-tableaux de suivi en artefacts ».
+Puis, dans votre assistant :
+
+```
+Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules
+```
+
+`init` détecte l'assistant utilisé dans le projet (Claude Code, Cursor, Copilot, Codex, Gemini
+CLI, Windsurf…) et y installe le skill. Seuls Node.js 18+ et Python 3 sont nécessaires.
+
+**Sur claude.ai** : ajoutez [`suivi-module.skill`](./suivi-module.skill) à vos skills
+([mode d'emploi](https://support.claude.com/en/articles/12512180-using-skills-in-claude)),
+joignez une archive `.zip` de votre dépôt (ou donnez le lien d'un dépôt GitHub public), puis
+dites la même phrase. Les tableaux produits localement peuvent aussi être publiés en artefacts :
+joignez le dossier `suivi/` et dites « publie mes tableaux de suivi en artefacts ».
 
 ## Ce que vous obtenez
 
@@ -64,39 +67,76 @@ Un onglet n'apparaît que si le dépôt permet de le remplir : le skill préfèr
 
 ## Installation
 
-### Claude Code, comme plugin (tous vos projets)
+### Avec la commande `suivi-module` (recommandé)
+
+Sans rien installer d'autre, depuis la racine du projet :
+
+```bash
+npx suivi-module init                      # assistant détecté dans le projet (Claude Code par défaut)
+npx suivi-module init --ai cursor          # un assistant précis
+npx suivi-module init --ai claude,copilot  # plusieurs
+npx suivi-module init --ai all             # tous les assistants
+npx suivi-module init --global             # dans le dossier personnel : tous vos projets
+```
+
+Ou en l'installant une fois pour toutes : `npm install -g suivi-module`, puis `suivi-module init`.
+
+| `--ai` | Assistant | Dossier d'installation |
+|---|---|---|
+| `claude` | Claude Code | `.claude/skills/suivi-module` |
+| `cursor` | Cursor | `.cursor/skills/suivi-module` |
+| `copilot` | GitHub Copilot | `.github/skills/suivi-module` (global : `~/.copilot/skills`) |
+| `codex` | Codex | `.agents/skills/suivi-module` |
+| `gemini` | Gemini CLI | `.gemini/skills/suivi-module` |
+| `windsurf` | Windsurf | `.windsurf/skills/suivi-module` |
+| `universal` | Standard Agent Skills | `.agents/skills/suivi-module` |
+| `kiro` | Kiro | `.kiro/steering/suivi-module` |
+| `roocode` | Roo Code | `.roo/skills/suivi-module` |
+| `opencode`, `continue`, `trae`, `qoder`, `codebuddy`, `droid`, `kilocode`, `warp`, `augment`, `zcode`, `kimi`, `codewhale`, `amazonq`, `antigravity`, `openclaw` | | `npx suivi-module list` |
+
+Autres commandes :
+
+```bash
+npx suivi-module update        # met à jour toutes les installations trouvées (projet et dossier personnel)
+npx suivi-module uninstall     # retire le skill (assistants détectés, ou --ai …)
+npx suivi-module list          # assistants pris en charge et installations présentes
+npx suivi-module init --dry-run   # montre ce qui serait fait, sans rien écrire
+```
+
+Vos tableaux de suivi ne sont jamais touchés par `update` ni `uninstall`.
+
+### Claude Code, comme plugin
 
 ```
 /plugin marketplace add dav9fulldev/suivi-module-skill
 /plugin install suivi-module@suivi-module
 ```
 
-### Claude Code, dans un seul projet
-
-Depuis la racine du projet ; le skill est copié dans `.claude/skills/suivi-module`.
+### Sans Node.js (Claude Code uniquement)
 
 ```bash
-# macOS, Linux, WSL
-curl -fsSL https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.sh | bash          # macOS, Linux, WSL
 ```
 
 ```powershell
-# Windows PowerShell
-irm https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.ps1 | iex                # Windows
 ```
-
-Pour l'installer pour tous vos projets plutôt que pour un seul : `… | bash -s -- --global`
-(macOS, Linux), ou `$env:SUIVI_MODULE_GLOBAL = "1"` avant la commande PowerShell.
 
 ### claude.ai
 
 Téléchargez [`suivi-module.skill`](./suivi-module.skill) puis ajoutez-le à vos skills en
 suivant [Using skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude).
-Sur claude.ai, le skill crée des artefacts privés à partir des fichiers que vous joignez.
 
 ### Prérequis
 
-Python 3 (les scripts n'ont aucune dépendance externe) et git pour l'historique.
+Python 3 pour les scripts du skill (bibliothèque standard uniquement : rien n'est installé et
+aucun appel réseau n'est fait), git pour l'historique, Node.js 18+ pour la commande `suivi-module`.
+
+### Avec les autres assistants
+
+Le skill est écrit pour Claude, mais suit le format standard des skills (`SKILL.md`). Dans un
+assistant sans artefacts, il produit les tableaux en pages HTML dans `suivi/`, avec le même
+contenu.
 
 ## Utilisation
 
@@ -147,10 +187,13 @@ confirmer ».
 
 ## Mettre à jour le skill
 
-- **Installé avec `curl` ou PowerShell** : relancez la même commande, elle remplace l'ancienne version.
-- **Installé comme plugin** : mettez à jour le marketplace `suivi-module` depuis le menu `/plugin` de Claude Code.
+```bash
+npx suivi-module@latest update
+```
 
-Vos tableaux (`suivi/`) ne sont pas touchés par une mise à jour du skill.
+Installé comme plugin : mettez à jour le marketplace `suivi-module` depuis le menu `/plugin`.
+Installé avec `curl` ou PowerShell : relancez la même commande. Vos tableaux (`suivi/` ou
+artefacts) ne sont pas touchés par une mise à jour du skill.
 
 ## Confidentialité
 
@@ -164,16 +207,20 @@ vous le signale.
 
 | Symptôme | Solution |
 |---|---|
+| `npx: command not found` | Installer Node.js 18+ depuis https://nodejs.org, ou utiliser l'installation sans Node.js |
+| `npm ERR! 404` sur `npx suivi-module` | Le paquet n'est pas encore sur npm : utiliser `npx github:dav9fulldev/suivi-module-skill init` |
 | `python: command not found` | Installer Python 3 ; sur macOS, accepter l'installation des outils de ligne de commande proposée au premier `git` ou `python3` |
 | Un module attendu n'est pas détecté | Le nommer explicitement : « crée le tableau de suivi du module X ». Claude complète par sa propre lecture de l'arborescence |
 | Le modèle MERISE est vide ou incomplet | Demander : « complète le modèle MERISE du module X à partir des fichiers de modèle ». Claude passe par le format neutre |
 | Mes coches ont disparu après une mise à jour | Elles étaient restées dans le navigateur : cliquer d'abord « Exporter », remplacer `suivi/<module>/remplissage.json`, puis relancer la mise à jour |
 | Sur claude.ai, la page affiche « Hors ligne » | Demander à Claude de republier l'artefact avec la capacité `db` |
-| `install.ps1` échoue | Utiliser l'installation comme plugin, qui fonctionne sur tous les systèmes, et signaler le problème dans une issue |
+| `install.ps1` échoue | Utiliser `npx suivi-module init`, qui fonctionne sur tous les systèmes |
 
 ## Contenu du dépôt
 
 ```
+bin/suivi-module.js                  la commande suivi-module (init, update, uninstall, list)
+package.json                         paquet npm « suivi-module »
 .claude-plugin/marketplace.json      déclaration du plugin pour Claude Code
 skills/suivi-module/
   SKILL.md                           instructions suivies par Claude
@@ -197,6 +244,7 @@ install.sh, install.ps1              installation en une commande
 
 | Version | Nouveautés |
 |---|---|
+| 1.4.0 | Commande `npx suivi-module init` : installation en une commande dans Claude Code et 23 autres assistants (Cursor, Copilot, Codex, Gemini CLI, Windsurf…), détection de l'assistant du projet, `update`, `uninstall`, `list`, `--global`, `--dry-run` |
 | 1.3.0 | Artefacts comme format principal : un artefact par module et un artefact d'accueil, mise à jour des artefacts sans perte des saisies, publication en artefacts de tableaux produits localement, dépôt joint en archive ou cloné depuis GitHub sur claude.ai |
 | 1.2.0 | Toutes technologies : modèle de données de 11 piles, détection des modules selon les conventions de chaque framework, dépendances par les imports et les relations entre entités, commandes de la boucle de dev selon la pile |
 | 1.1.0 | Exploration automatique du dépôt sans question, mode « tous les modules » et page d'accueil, statuts justifiés par des preuves, détection du travail non commité, mise à jour sans perte des saisies |

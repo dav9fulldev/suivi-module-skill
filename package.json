@@ -1,0 +1,39 @@
+{
+  "name": "suivi-module",
+  "version": "1.4.0",
+  "description": "Installe le skill suivi-module (tableau de suivi de module construit à partir du dépôt) dans Claude Code, Cursor, Copilot, Codex, Gemini CLI, Windsurf et 18 autres assistants IA de code.",
+  "type": "module",
+  "bin": {
+    "suivi-module": "bin/suivi-module.js"
+  },
+  "files": [
+    "bin",
+    "skills"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "skill",
+    "agent-skills",
+    "cursor",
+    "copilot",
+    "codex",
+    "gemini",
+    "windsurf",
+    "suivi",
+    "tableau-de-bord",
+    "merise",
+    "project-tracking"
+  ],
+  "author": "Brou David Yao (https://github.com/dav9fulldev)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dav9fulldev/suivi-module-skill.git"
+  },
+  "homepage": "https://github.com/dav9fulldev/suivi-module-skill#readme",
+  "bugs": "https://github.com/dav9fulldev/suivi-module-skill/issues"
+}
