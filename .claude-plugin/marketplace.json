@@ -5,12 +5,12 @@
   },
   "metadata": {
     "description": "Tableau de suivi de module ou de projet logiciel pour Claude",
-    "version": "1.0.0"
+    "version": "1.2.0"
   },
   "plugins": [
     {
       "name": "suivi-module",
-      "description": "Crée, relit et met à jour un tableau de suivi de module à 9 onglets : vue d'ensemble, démarrage, lecture, modèle MERISE, exigences et recette, plan de développement, boucle de dev, fonctionnalités, arbitrages.",
+      "description": "Crée et tient à jour le tableau de suivi d'un module ou de tous les modules d'un projet, en explorant le dépôt sans rien demander au développeur, quelle que soit la technologie : fonctionnalités avec preuves, arbitrages, exigences, modèle MERISE déduit du code, carte des dépendances, prise en main.",
       "source": "./",
       "strict": false,
       "skills": [

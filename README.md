@@ -1,8 +1,8 @@
 # suivi-module — un tableau de suivi de module pour Claude
 
-Un skill qui fabrique et tient à jour le **tableau de suivi** d'un module ou d'un projet
-logiciel, à partir des documents du projet (CLAUDE.md, spécifications, cahier d'exigences,
-journal des décisions).
+Un skill qui fabrique et tient à jour le **tableau de suivi** d'un module, ou de tous les
+modules d'un projet logiciel, en explorant le dépôt lui-même : le développeur n'a qu'une
+phrase à dire.
 
 Le tableau compte 9 onglets :
 
@@ -59,22 +59,54 @@ suivant [Using skills in Claude](https://support.claude.com/en/articles/12512180
 
 ## Utilisation
 
-Il suffit de le demander, en joignant ou en désignant les documents du module :
+Une phrase suffit, depuis la racine du projet dans Claude Code :
 
-- « Crée le tableau de suivi du module Congés à partir de CLAUDE.md et de docs/SPEC-CONG-01.md »
-- « Relis mon tableau de suivi et dis-moi ce qui a changé »
-- « Passe le lot L3 en terminé et ajoute l'arbitrage sur la durée de réouverture »
+```
+Utilise le skill suivi-module pour créer le tableau de suivi du module diligences
+Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules
+```
 
-Le skill choisit son mode selon l'endroit où il tourne :
+Claude explore alors le dépôt lui-même, sans poser de questions : pile technique, modules,
+écrans, fichiers serveur, aide, documents qui en parlent, modèle de données, dépendances entre
+modules, historique git, travail non commité. Il produit :
 
-- **Dans Claude Code (mode local)** : il écrit `suivi/<code>/remplissage.json` et génère
-  `suivi/<code>/index.html`, à ouvrir dans un navigateur. Le JSON est versionné avec le code.
-  Les coches faites dans la page restent dans le navigateur ; le bouton « Exporter » télécharge
-  un `remplissage.json` à remettre dans le projet.
-- **Sur claude.ai (mode artefact)** : il publie un artefact privé et range les données dans sa
-  base. Rien n'est visible des autres tant que vous ne le partagez pas.
+- `suivi/<module>/index.html` : le tableau du module, à ouvrir dans le navigateur ;
+- `suivi/<module>/remplissage.json` : ses données, versionnées avec le code ;
+- `suivi/index.html` : la page d'accueil qui récapitule tous les modules.
 
-Prérequis du mode local : Python 3 (scripts sans dépendance externe).
+Chaque statut est justifié par une preuve (fichier, test, commit) ; ce qui reste incertain
+est listé « à confirmer » dans le compte rendu. Le modèle MERISE est déduit du modèle de
+données et la carte des dépendances des imports et des relations entre entités.
+
+## Technologies
+
+Le skill s'adapte à la pile du projet :
+
+| | Reconnu automatiquement |
+|---|---|
+| Modèle de données | Prisma, SQL et migrations SQL, Django, SQLAlchemy, TypeORM, JPA/Hibernate, Entity Framework Core, Rails, Laravel, Mongoose, Drizzle |
+| Structure des modules | Next.js, React, Vue, Angular, Svelte, NestJS, Express, Django, Flask, FastAPI, Rails, Laravel, Symfony, Spring Boot, ASP.NET Core, Go, architecture par couches |
+| Dépendances entre modules | Imports JS/TS, Python, Java/Kotlin, PHP ; relations entre entités pour toutes les piles |
+| Commandes de la boucle de dev | `package.json`, `Makefile`, `composer.json`, Docker Compose, et conventions des frameworks ci-dessus |
+
+Pour une technologie absente du tableau (GORM, Sequelize, Doctrine, Ecto…), Claude lit
+lui-même les fichiers de modèle et les écrit dans un format neutre, d'où le même modèle MERISE
+est généré.
+
+Ensuite :
+
+```
+Utilise le skill suivi-module pour mettre à jour le tableau de suivi de tous les modules
+Relis le tableau de suivi du module diligences : qu'est-ce qui a changé ?
+```
+
+La mise à jour garde ce que l'équipe a saisi : étapes cochées, décisions prises, résultats de
+recette, éléments ajoutés à la main. Les coches faites dans la page restent dans le
+navigateur ; le bouton « Exporter » télécharge un `remplissage.json` à remettre dans le projet.
+
+Sur claude.ai, le même skill crée des artefacts privés à partir des fichiers joints.
+
+Prérequis : Python 3 (scripts sans dépendance externe), et git pour l'historique.
 
 ## Confidentialité
 
@@ -92,8 +124,14 @@ skills/suivi-module/
   SKILL.md                        instructions suivies par Claude
   assets/template.html            la page du tableau (aucune donnée)
   references/donnees.md           forme des données de chaque onglet
+  references/exploration.md       comment déduire chaque onglet du dépôt, règles de preuve
+  scripts/explorer_projet.py      inventaire du dépôt : pile, modules, couches, documents, entités, dépendances, git
+  scripts/modeles_donnees.py      lecture du modèle de données de 11 technologies, format neutre
+  scripts/modele_vers_mcd.py      modèle MERISE déduit du modèle de données
   scripts/preparer_remplissage.py vérification (statuts, références, secrets) et lots
-  scripts/construire_page_locale.py  page locale avec données embarquées
+  scripts/construire_page_locale.py  page d'un module, données embarquées
+  scripts/construire_index.py     page d'accueil de tous les modules
+  scripts/fusionner_remplissage.py   mise à jour sans perte des saisies
   scripts/comparer_lectures.py    ce qui a changé entre deux lectures
 suivi-module.skill                archive pour claude.ai
 install.sh, install.ps1           installation en une commande
