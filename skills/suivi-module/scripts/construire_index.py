@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""Génère suivi/index.html : la page d'accueil qui récapitule tous les tableaux de suivi
-du projet (un par sous-dossier contenant un remplissage.json).
+"""Génère la page d'accueil qui récapitule tous les tableaux de suivi du projet (un par
+sous-dossier contenant un remplissage.json).
 
-Usage : python construire_index.py suivi [--projet "Nom du projet"]
+Mode local : suivi/index.html, avec des liens vers suivi/<module>/index.html.
+Mode artefact : dossier = /mnt/user-data/outputs (sous-dossiers suivi-<code>),
+--liens liens.json ({"<code>": "https://claude.ai/artifact/…"})
+et --sortie vers le fichier à publier ; chaque carte ouvre l'artefact du module.
+
+Usage : python construire_index.py suivi [--projet "Nom"] [--liens liens.json] [--sortie index.html]
 """
 import argparse, datetime, html, json, os
 
@@ -28,7 +33,7 @@ def stats(d):
     }
 
 
-def carte(dossier, d, s, maj):
+def carte(dossier, d, s, maj, lien=None):
     fiche = d.get("fiche/main") or {}
     pct = round(100 * s["f_ok"] / s["f"]) if s["f"] else 0
     seg = lambda n, cls: f'<span class="{cls}" style="width:{100 * n / s["f"]:.1f}%"></span>' if s["f"] and n else ""
@@ -48,7 +53,8 @@ def carte(dossier, d, s, maj):
         lignes.append(f'<li>Lots terminés : {s["lots_ok"]} / {s["lots"]}</li>')
     if s["dem"]:
         lignes.append(f'<li>Prise en main : {s["dem_ok"]} / {s["dem"]} étapes</li>')
-    return f'''<a class="carte" href="./{E(dossier)}/index.html">
+    cible = f'href="{E(lien)}" target="_blank" rel="noopener"' if lien else f'href="./{E(dossier)}/index.html"'
+    return f'''<a class="carte" {cible}>
   <div class="tete"><h2>{E(fiche.get("nom") or dossier)}</h2><span class="code">{E(fiche.get("code") or dossier.upper())}</span></div>
   <p class="accroche">{E(fiche.get("accroche") or "")}</p>
   <div class="pct"><b>{pct} %</b><span>{s["f_ok"]} / {s["f"]} fonctionnalités terminées</span></div>
@@ -62,7 +68,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dossier", nargs="?", default="suivi")
     ap.add_argument("--projet", default="")
+    ap.add_argument("--liens", help="JSON {dossier du module: lien de son artefact} (mode artefact)")
+    ap.add_argument("--sortie", help="Fichier à écrire (par défaut <dossier>/index.html)")
     a = ap.parse_args()
+    liens = json.load(open(a.liens, encoding="utf-8")) if a.liens else {}
     cartes, total = [], {"f": 0, "f_ok": 0, "dec": 0, "n": 0}
     for nom in sorted(os.listdir(a.dossier)):
         chemin = os.path.join(a.dossier, nom, "remplissage.json")
@@ -71,7 +80,10 @@ def main():
         d = json.load(open(chemin, encoding="utf-8"))
         s = stats(d)
         maj = datetime.date.fromtimestamp(os.path.getmtime(chemin)).strftime("%d/%m/%Y")
-        cartes.append((-(s["dec_ouvertes"] + s["f_bloque"]), (d.get("fiche/main") or {}).get("nom", nom).lower(), carte(nom, d, s, maj)))
+        code = nom[len("suivi-"):] if nom.startswith("suivi-") else nom   # dossiers du mode artefact
+        if liens and code not in liens:
+            continue  # module pas encore publié en artefact
+        cartes.append((-(s["dec_ouvertes"] + s["f_bloque"]), (d.get("fiche/main") or {}).get("nom", nom).lower(), carte(nom, d, s, maj, liens.get(code))))
         total["f"] += s["f"]; total["f_ok"] += s["f_ok"]; total["dec"] += s["dec_ouvertes"]; total["n"] += 1
     cartes.sort()
     pct = round(100 * total["f_ok"] / total["f"]) if total["f"] else 0
@@ -80,10 +92,12 @@ def main():
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Suivi des modules — {E(projet)}</title>
 <style>
-:root{{--fond:#F2F4F7;--carte:#FFFFFF;--encre:#172033;--doux:#5A6477;--ligne:#DCE1E8;--accent:#96560F;
+:root{{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--fond:#F2F4F7;--carte:#FFFFFF;--encre:#172033;--doux:#5A6477;--ligne:#DCE1E8;--accent:#96560F;
 --ok:#1C7548;--verif:#2A5CB3;--cours:#A86400;--bloque:#B42318;--vide:#EEF0F3;color-scheme:light}}
-@media (prefers-color-scheme:dark){{:root{{--fond:#12161F;--carte:#1B2130;--encre:#E7EAF0;--doux:#A3ABBA;--ligne:#2E3647;
+@media (prefers-color-scheme:dark){{:root:not([data-theme="light"]){{--fond:#12161F;--carte:#1B2130;--encre:#E7EAF0;--doux:#A3ABBA;--ligne:#2E3647;
 --accent:#E0A35B;--ok:#4CC08A;--verif:#7FA6F0;--cours:#E0A35B;--bloque:#F07A6E;--vide:#2A3142;color-scheme:dark}}}}
+:root[data-theme="dark"]{{--fond:#12161F;--carte:#1B2130;--encre:#E7EAF0;--doux:#A3ABBA;--ligne:#2E3647;
+--accent:#E0A35B;--ok:#4CC08A;--verif:#7FA6F0;--cours:#E0A35B;--bloque:#F07A6E;--vide:#2A3142;color-scheme:dark}}
 *{{box-sizing:border-box}}body{{margin:0;background:var(--fond);color:var(--encre);
 font:15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif}}
 main{{max-width:1180px;margin:0 auto;padding:32px 20px 48px}}
@@ -108,11 +122,11 @@ ul{{list-style:none;margin:0;padding:0;font-size:13.5px}}li{{padding:2px 0}}li.a
 </style></head><body><main>
 <div class="sur">Tableau de suivi des modules</div>
 <h1>{E(projet)}</h1>
-<p class="resume"><b>{total["n"]}</b> module{"s" if total["n"] > 1 else ""} · <b>{pct} %</b> des fonctionnalités terminées ({total["f_ok"]} / {total["f"]}) · <b>{total["dec"]}</b> arbitrage{"s" if total["dec"] > 1 else ""} à trancher</p>
+<p class="resume">{"Données au " + datetime.date.today().strftime("%d/%m/%Y") + " · " if liens else ""}<b>{total["n"]}</b> module{"s" if total["n"] > 1 else ""} · <b>{pct} %</b> des fonctionnalités terminées ({total["f_ok"]} / {total["f"]}) · <b>{total["dec"]}</b> arbitrage{"s" if total["dec"] > 1 else ""} à trancher</p>
 <div class="legende"><span><i style="background:var(--ok)"></i>Terminé</span><span><i style="background:var(--verif)"></i>À vérifier</span><span><i style="background:var(--cours)"></i>En cours</span><span><i style="background:var(--bloque)"></i>Bloqué</span></div>
 <div class="grille">{"".join(c for _, _, c in cartes) or "<p>Aucun tableau de suivi pour l’instant.</p>"}</div>
 </main></body></html>'''
-    sortie = os.path.join(a.dossier, "index.html")
+    sortie = a.sortie or os.path.join(a.dossier, "index.html")
     open(sortie, "w", encoding="utf-8").write(page)
     print(f"Page d'accueil écrite : {sortie} ({total['n']} module(s))")
 

@@ -2,7 +2,7 @@
 
 **Le tableau de suivi de vos modules, construit par Claude à partir de votre dépôt.**
 
-Installez le skill, puis dites une phrase à Claude Code :
+Installez le skill, puis dites une phrase à Claude :
 
 ```
 Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules
@@ -13,27 +13,37 @@ tableau de bord : ce qu'il fait, comment le prendre en main, ce qui est livré, 
 faire et ce qui attend une décision. Une page d'accueil récapitule l'avancement de tous les
 modules.
 
+**Les tableaux sont des artefacts Claude** : privés, interactifs, partageables par lien.
+Là où l'outil d'artefacts n'existe pas (Claude Code sans cet outil, autre assistant), le skill
+produit à la place des pages HTML dans le projet, avec le même contenu.
+
 ## Démarrage rapide
 
+**Sur claude.ai (artefacts)**
+1. Ajoutez [`suivi-module.skill`](./suivi-module.skill) à vos skills ([mode d'emploi](https://support.claude.com/en/articles/12512180-using-skills-in-claude)).
+2. Joignez une archive `.zip` de votre dépôt, ou donnez le lien d'un dépôt GitHub public.
+3. Dites : « Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules ».
+
+**Dans Claude Code**
+
 ```bash
-# 1. Depuis la racine de votre projet (macOS, Linux, WSL)
+# Depuis la racine de votre projet (macOS, Linux, WSL)
 curl -fsSL https://raw.githubusercontent.com/dav9fulldev/suivi-module-skill/main/install.sh | bash
-
-# 2. Dans Claude Code
-#    « Utilise le skill suivi-module pour créer le tableau de suivi de tous les modules »
-
-# 3. Ouvrir le résultat
-open suivi/index.html        # macOS ; xdg-open sous Linux, start sous Windows
 ```
+
+Puis dites la même phrase. Si l'outil d'artefacts est disponible, vous obtenez des artefacts ;
+sinon des pages dans `suivi/` (`open suivi/index.html` sur macOS). Ces pages peuvent ensuite
+être publiées en artefacts : joignez le dossier `suivi/` sur claude.ai et dites « publie mes
+tableaux de suivi en artefacts ».
 
 ## Ce que vous obtenez
 
-```
-suivi/
-  index.html                 page d'accueil : avancement de tous les modules
-  <module>/index.html        tableau du module, à ouvrir dans le navigateur
-  <module>/remplissage.json  ses données, versionnées avec le code
-```
+| | Artefacts (format principal) | Pages locales (repli) |
+|---|---|---|
+| Un tableau par module | Artefact « Suivi de module — <Nom> » | `suivi/<module>/index.html` |
+| Accueil de tous les modules | Artefact « Suivi des modules — <Projet> » | `suivi/index.html` |
+| Données | Base de l'artefact, partagée avec qui reçoit le lien | `suivi/<module>/remplissage.json`, versionné avec le code |
+| Saisies (coches, décisions, recette) | Enregistrées pour tous les lecteurs | Gardées dans le navigateur, bouton « Exporter » |
 
 Chaque tableau compte jusqu'à 9 onglets :
 
@@ -96,15 +106,16 @@ Python 3 (les scripts n'ont aucune dépendance externe) et git pour l'historique
 | « … de tous les modules » | Crée un tableau par module détecté, plus `suivi/index.html` |
 | « … pour mettre à jour le tableau de suivi de tous les modules » | Relit le dépôt et met à jour sans perdre vos saisies |
 | « Relis le tableau de suivi du module diligences : qu'est-ce qui a changé ? » | Compare avec la version commitée et résume |
-| « Passe la fonctionnalité f03 en terminé » | Modifie le tableau et régénère la page |
+| « Passe la fonctionnalité f03 en terminé » | Modifie le tableau |
+| « Publie mes tableaux de suivi en artefacts » (dossier `suivi/` joint) | Publie chaque module et l'accueil en artefacts, sans réexplorer |
 
 Le nom du module peut être celui du code (`diligences`) ou un nom métier (« le module RH ») :
 Claude cherche la correspondance dans les documents.
 
 **Vos saisies sont conservées.** Les étapes cochées, les décisions prises, les résultats de
-recette et les éléments ajoutés à la main survivent aux mises à jour. Les coches faites dans
-la page restent dans votre navigateur ; le bouton « Exporter » télécharge un
-`remplissage.json` à remettre dans `suivi/<module>/` pour les partager avec l'équipe.
+recette et les éléments ajoutés à la main survivent aux mises à jour. Dans un artefact, elles
+sont enregistrées directement. Dans une page locale, elles restent dans votre navigateur : le
+bouton « Exporter » télécharge un `remplissage.json` à remettre dans `suivi/<module>/`.
 
 ## Comment ça marche
 
@@ -174,7 +185,8 @@ skills/suivi-module/
   scripts/modele_vers_mcd.py         modèle MERISE déduit du modèle de données
   scripts/preparer_remplissage.py    vérification (statuts, références, secrets) et lots
   scripts/construire_page_locale.py  page d'un module, données embarquées
-  scripts/construire_index.py        page d'accueil de tous les modules
+  scripts/construire_index.py        page d'accueil de tous les modules (liens locaux ou artefacts)
+  scripts/lecture_vers_remplissage.py   base d'un artefact → remplissage.json (mises à jour)
   scripts/fusionner_remplissage.py   mise à jour sans perte des saisies
   scripts/comparer_lectures.py       ce qui a changé entre deux lectures
 suivi-module.skill                   archive pour claude.ai
@@ -185,6 +197,7 @@ install.sh, install.ps1              installation en une commande
 
 | Version | Nouveautés |
 |---|---|
+| 1.3.0 | Artefacts comme format principal : un artefact par module et un artefact d'accueil, mise à jour des artefacts sans perte des saisies, publication en artefacts de tableaux produits localement, dépôt joint en archive ou cloné depuis GitHub sur claude.ai |
 | 1.2.0 | Toutes technologies : modèle de données de 11 piles, détection des modules selon les conventions de chaque framework, dépendances par les imports et les relations entre entités, commandes de la boucle de dev selon la pile |
 | 1.1.0 | Exploration automatique du dépôt sans question, mode « tous les modules » et page d'accueil, statuts justifiés par des preuves, détection du travail non commité, mise à jour sans perte des saisies |
 | 1.0.0 | Tableau de suivi à 9 onglets, en artefact claude.ai ou en page locale, vérification des secrets |
