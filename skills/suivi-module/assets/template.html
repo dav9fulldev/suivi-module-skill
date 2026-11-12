@@ -1,0 +1,1065 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Suivi de module</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,600..800&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#F2F4F7; --surface:#FFFFFF; --surface-2:#F7F8FA; --ink:#172033; --muted:#5A6477; --faint:#8A93A3;
+  --line:#DCE1E8; --line-strong:#C5CCD6;
+  --accent:#96560F; --accent-ink:#FFFFFF; --accent-soft:#F6ECDD;
+  --ok:#1C7548; --ok-soft:#E3F2EA; --run:#A86400; --run-soft:#FBF0DC; --chk:#2A5CB3; --chk-soft:#E4ECFA;
+  --bad:#B42318; --bad-soft:#FBE7E5; --todo:#667085; --todo-soft:#EEF0F3;
+  --font-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#10141B; --surface:#171C25; --surface-2:#1C222D; --ink:#E6E9EF; --muted:#A3ABBA; --faint:#7A8394;
+    --line:#2A3140; --line-strong:#3A4354;
+    --accent:#E0A55A; --accent-ink:#10141B; --accent-soft:#33250F;
+    --ok:#5BC48B; --ok-soft:#173026; --run:#E4A847; --run-soft:#33280F; --chk:#7FA6F0; --chk-soft:#18253D;
+    --bad:#F08A7E; --bad-soft:#3A1B18; --todo:#A3ABBA; --todo-soft:#232A36;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#10141B; --surface:#171C25; --surface-2:#1C222D; --ink:#E6E9EF; --muted:#A3ABBA; --faint:#7A8394;
+  --line:#2A3140; --line-strong:#3A4354;
+  --accent:#E0A55A; --accent-ink:#10141B; --accent-soft:#33250F;
+  --ok:#5BC48B; --ok-soft:#173026; --run:#E4A847; --run-soft:#33280F; --chk:#7FA6F0; --chk-soft:#18253D;
+  --bad:#F08A7E; --bad-soft:#3A1B18; --todo:#A3ABBA; --todo-soft:#232A36;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.55;padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--font-display);font-stretch:85%;text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(28px,5vw,40px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:20px;font-weight:700}
+h3{font-size:15px;font-weight:700;font-stretch:100%;font-family:var(--font-body)}
+p{margin:0}
+code,.mono{font-family:var(--font-mono);font-size:.86em}
+code{background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* En-tête */
+.head{display:grid;grid-template-columns:1fr auto;gap:12px 24px;align-items:end;padding-bottom:18px;border-bottom:2px solid var(--ink)}
+.head .code{font-family:var(--font-mono);font-size:12px;background:var(--accent);color:var(--accent-ink);padding:3px 8px;border-radius:3px;font-weight:500}
+.head .sub{color:var(--muted);max-width:62ch;margin-top:6px}
+.head .titleline{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:6px}
+.sync{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--faint);display:inline-block}
+.sync.on i{background:var(--ok)} .sync.off i{background:var(--bad)}
+
+/* Synthèse */
+.summary{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.tile .big{font-family:var(--font-display);font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.tile .big small{font-size:14px;font-weight:600;color:var(--muted);font-family:var(--font-body);margin-left:6px}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--todo-soft)}
+.bar span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.legend b{color:var(--ink);font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:1px}
+.s-termine{--c:var(--ok);--cs:var(--ok-soft)} .s-en_cours{--c:var(--run);--cs:var(--run-soft)}
+.s-a_verifier{--c:var(--chk);--cs:var(--chk-soft)} .s-bloque{--c:var(--bad);--cs:var(--bad-soft)} .s-a_faire{--c:var(--todo);--cs:var(--todo-soft)}
+.s-a_trancher{--c:var(--run);--cs:var(--run-soft)} .s-tranche{--c:var(--chk);--cs:var(--chk-soft)}
+.s-applique{--c:var(--ok);--cs:var(--ok-soft)} .s-abandonne{--c:var(--todo);--cs:var(--todo-soft)}
+.dot{background:var(--c)}
+
+/* Onglets */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line-strong);overflow-x:auto;scrollbar-width:none;position:sticky;top:env(safe-area-inset-top,0px);background:var(--ground);z-index:5}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .n{font-family:var(--font-mono);font-size:11.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:0 6px;margin-left:6px;color:var(--muted)}
+
+/* Boutons */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);background:var(--surface);border-radius:6px;padding:6px 11px;font-size:13.5px;font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted);padding:5px 8px}
+.btn.ghost:hover{color:var(--ink);background:var(--surface-2)}
+.btn.danger{color:var(--bad)}
+.btn.done{border-color:var(--ok);color:var(--ok)}
+.btn.done:hover{background:var(--ok-soft)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Vue d'ensemble */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.block.wide{grid-column:1/-1}
+.block .bh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.prose{display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.prose ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.empty{color:var(--faint);font-style:italic}
+.layers{display:flex;flex-direction:column;gap:0;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden}
+.layer{display:grid;grid-template-columns:200px 1fr;border-top:1px solid var(--line)}
+.layer:first-child{border-top:0}
+.layer .ln{padding:10px 12px;font-weight:700;font-size:13px;background:var(--surface-2);border-right:1px solid var(--line);display:flex;gap:8px;align-items:baseline}
+.layer .ln .k{font-family:var(--font-mono);font-size:11px;color:var(--accent);font-weight:500}
+.layer .lc{padding:10px 12px;font-size:13.5px}
+.reflist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.reflist li{font-family:var(--font-mono);font-size:12.5px;padding:6px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;overflow-wrap:anywhere}
+textarea.edit{width:100%;min-height:150px;border:1px solid var(--line-strong);border-radius:6px;padding:10px;background:var(--surface-2);resize:vertical;font-size:14px;line-height:1.5}
+.hint{font-size:12.5px;color:var(--muted)}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Barre d'outils */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.search{border:1px solid var(--line-strong);border-radius:6px;padding:6px 10px;background:var(--surface);min-width:0;width:220px;max-width:100%}
+
+/* Formulaires */
+.form{background:var(--surface);border:1px dashed var(--line-strong);border-radius:8px;padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form.inline{border-style:solid;border-color:var(--accent);background:var(--surface-2)}
+.form .full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea{border:1px solid var(--line-strong);border-radius:6px;padding:7px 9px;background:var(--surface);font-weight:400;font-size:14px;color:var(--ink)}
+.field textarea{min-height:70px;resize:vertical}
+
+/* Fonctionnalités */
+.group{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.group-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.group-h .gp{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:8px}
+.group-h .mini{width:80px;height:6px;border-radius:3px;background:var(--todo-soft);overflow:hidden}
+.group-h .mini span{display:block;height:100%;background:var(--ok)}
+.feat{display:grid;grid-template-columns:132px 1fr auto;gap:12px;padding:12px 16px;border-top:1px solid var(--line);align-items:start}
+.group-h + .feat{border-top:0}
+.feat.is-done .ft{color:var(--muted)}
+.ft{font-weight:600}
+.fd{color:var(--muted);font-size:13.5px;margin-top:2px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:6px;font-size:12px;color:var(--faint)}
+.meta .ref{font-family:var(--font-mono);color:var(--accent)}
+.pill{appearance:none;-webkit-appearance:none;border:1px solid var(--c);background:var(--cs);color:var(--c);border-radius:999px;padding:3px 24px 3px 10px;font-size:12.5px;font-weight:700;cursor:pointer;width:100%;
+  background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+  background-position:calc(100% - 13px) 55%,calc(100% - 9px) 55%;background-size:4px 4px;background-repeat:no-repeat}
+.pill option{color:var(--ink);background:var(--surface)}
+.badge{display:inline-block;border:1px solid var(--c);background:var(--cs);color:var(--c);border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}
+
+/* Décisions */
+.decs{display:flex;flex-direction:column;gap:10px}
+.dec{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.dec-h{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.dec-h .t{display:flex;gap:10px;align-items:baseline;flex:1;min-width:220px}
+.dec-h .code{font-family:var(--font-mono);font-size:12px;color:var(--accent);font-weight:500;flex:none}
+.dec .kv{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;font-size:13.5px}
+.dec .kv dt{color:var(--muted);font-weight:600;font-size:12.5px}
+.dec .kv dd{margin:0}
+.dec .kv dd.decision{font-weight:600}
+.dec-side{display:flex;gap:8px;align-items:center}
+.dec-side .pill{width:auto;min-width:170px}
+
+/* Démarrage */
+.steps{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;counter-reset:st}
+.step{display:grid;grid-template-columns:36px 1fr auto;gap:10px;padding:12px 16px;border-top:1px solid var(--line);align-items:start}
+.step:first-child{border-top:0}
+.step .num{font-family:var(--font-mono);font-size:12px;color:var(--faint);padding-top:3px}
+.step label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.step input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none}
+.step.done .st{text-decoration:line-through;color:var(--muted)}
+.st{font-weight:600}
+
+/* Lecture */
+.reading{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+.doclist{display:flex;flex-direction:column;gap:6px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px)}
+.docitem{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:9px 11px;cursor:pointer}
+.docitem:hover{border-color:var(--line-strong)}
+.docitem[aria-current="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.docitem .dt{font-weight:600;font-size:13.5px;line-height:1.35}
+.docitem .dp{font-family:var(--font-mono);font-size:11px;color:var(--faint);overflow-wrap:anywhere}
+.docitem.read{opacity:.75}
+.doclist .lh{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.reader{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:28px clamp(16px,4vw,40px);min-width:0}
+.reader-h{display:flex;flex-direction:column;gap:4px;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.reader-h .path{font-family:var(--font-mono);font-size:12px;color:var(--accent);overflow-wrap:anywhere}
+.reader-h .snap{font-size:12px;color:var(--faint)}
+.md{max-width:78ch;font-size:15px;line-height:1.65}
+.md > * + *{margin-top:.85em}
+.md h1{font-size:26px;margin-top:0}
+.md h2{font-size:21px;margin-top:1.6em;padding-top:.4em;border-top:1px solid var(--line)}
+.md h3{font-size:16.5px;margin-top:1.4em;font-family:var(--font-display);font-stretch:90%}
+.md h4{font-size:15px;margin-top:1.2em}
+.md ul,.md ol{padding-left:22px}
+.md li + li{margin-top:.3em}
+.md blockquote{margin-left:0;padding:10px 14px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 6px 6px 0}
+.md blockquote > * + *{margin-top:.5em}
+.md pre{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5}
+.md pre code{background:none;border:0;padding:0}
+.md hr{border:0;border-top:1px solid var(--line);margin:1.6em 0}
+.md a{color:var(--accent)}
+.tbl{overflow-x:auto;max-width:100%;border:1px solid var(--line-strong);border-radius:6px}
+.md table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.45}
+.md th,.md td{padding:8px 11px;border-top:1px solid var(--line);text-align:left;vertical-align:top;min-width:90px}
+.md thead th{background:var(--surface-2);border-top:0;font-size:12.5px;font-weight:700;white-space:nowrap}
+.md tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+.reader-foot{margin-top:28px;padding-top:18px;border-top:2px solid var(--ink);display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.reader-foot p{color:var(--muted);font-size:13.5px;max-width:52ch}
+.btn.big{padding:10px 18px;font-size:15px}
+@media (max-width:760px){ .reading{grid-template-columns:1fr} .doclist{position:static} }
+
+/* Modèle MERISE */
+.mcd-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.mcd-wrap{overflow:auto;max-width:100%;background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;max-height:78vh;
+  background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:20px 20px}
+.mcd-wrap svg{display:block;touch-action:none;user-select:none}
+.mcd-wrap svg text{font-family:var(--font-mono);font-size:11.5px;fill:var(--ink)}
+.mlink{stroke:var(--muted);stroke-width:1.4}
+.ment{cursor:grab}
+.ment .mbox{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+.ment .mhead{fill:var(--accent-soft);stroke:var(--ink);stroke-width:1.4}
+.ment .mename{font-family:var(--font-body)!important;font-weight:700;font-size:12.5px!important;letter-spacing:.04em}
+.ment .mid{text-decoration:underline;font-weight:600}
+.massoc{cursor:grab}
+.massoc ellipse{fill:var(--surface-2);stroke:var(--accent);stroke-width:1.6}
+.massoc .mname{font-family:var(--font-body)!important;font-weight:700;font-size:11.5px!important;fill:var(--accent)!important}
+.massoc .mattr{font-size:10.5px!important;fill:var(--muted)!important}
+.mcard rect{fill:var(--ink)}
+.mcard text{fill:var(--surface)!important;font-weight:600;font-size:11px!important}
+.mrole{font-size:10px!important;fill:var(--muted)!important;font-style:italic}
+.dragging .ment,.dragging .massoc{cursor:grabbing}
+.legend-mcd{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted)}
+.legend-mcd code{font-size:11.5px}
+.tbl-plain{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.45}
+.tbl-plain th,.tbl-plain td{padding:8px 10px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.tbl-plain thead th{background:var(--surface-2);border-top:0;font-size:12px;font-weight:700;white-space:nowrap}
+.tbl-plain td.mono,.tbl-plain td .mono{font-size:12px}
+.mld{display:flex;flex-direction:column;gap:6px;font-family:var(--font-mono);font-size:12.5px;line-height:1.6}
+.mld div{padding:6px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;overflow-wrap:anywhere}
+.mld b{color:var(--accent)} .mld u{font-weight:600} .mld i{color:var(--muted);font-style:normal}
+.sec{display:flex;flex-direction:column;gap:10px}
+
+/* Exigences & recette */
+.req{display:grid;grid-template-columns:118px minmax(0,1fr) 190px;gap:12px;padding:12px 16px;border-top:1px solid var(--line);align-items:start}
+.group-h + .req{border-top:0}
+.req .rid{font-family:var(--font-mono);font-size:12.5px;font-weight:500;display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+.req .rt{font-weight:600}
+.req .rc{color:var(--muted);font-size:13px;margin-top:3px}
+.req input.note{width:100%;margin-top:6px;border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-size:12.5px;background:var(--surface-2)}
+.crit-Bloquant{--c:var(--bad);--cs:var(--bad-soft)} .crit-Critique{--c:var(--run);--cs:var(--run-soft)}
+.crit-Majeur{--c:var(--chk);--cs:var(--chk-soft)} .crit-Mineur{--c:var(--todo);--cs:var(--todo-soft)}
+.s-couvert{--c:var(--ok);--cs:var(--ok-soft)} .s-partiel{--c:var(--run);--cs:var(--run-soft)}
+.s-non_couvert{--c:var(--bad);--cs:var(--bad-soft)}
+.s-non_execute{--c:var(--todo);--cs:var(--todo-soft)} .s-ok{--c:var(--ok);--cs:var(--ok-soft)} .s-ko{--c:var(--bad);--cs:var(--bad-soft)}
+.tcase{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
+.tcase .th{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin-bottom:6px}
+.tcase .th .tid{font-family:var(--font-mono);font-weight:600;color:var(--accent)}
+.tcase .th .tx{font-family:var(--font-mono);font-size:12px;color:var(--faint)}
+.tcase dl{display:grid;grid-template-columns:110px 1fr;gap:3px 10px;margin:0;font-size:13.2px}
+.tcase dt{color:var(--muted);font-weight:600;font-size:12px}
+.tcase dd{margin:0}
+.tcase .tres{display:flex;flex-direction:column;gap:8px}
+.tcase .tres textarea,.tcase .tres input{border:1px solid var(--line-strong);border-radius:6px;padding:6px 8px;background:var(--surface-2);font-size:13px;width:100%}
+.tcase .tres textarea{min-height:64px;resize:vertical}
+/* Boucle de dev */
+.cmd{display:flex;flex-direction:column;gap:4px}
+.cmd-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px}
+.cmd pre{margin:0;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;overflow-x:auto;font-family:var(--font-mono);font-size:12.5px;line-height:1.5}
+.cmd pre code{background:none;border:0;padding:0;font-size:inherit}
+/* Plan de développement */
+.pmap-wrap{overflow:auto;max-width:100%;background:var(--surface);border:1px solid var(--line-strong);border-radius:8px}
+.pmap-wrap svg{display:block}
+.pmap-wrap svg text{font-family:var(--font-body);fill:var(--ink)}
+.pnode{cursor:pointer}
+.pnode rect{fill:var(--surface);stroke:var(--line-strong);stroke-width:1.4}
+.pnode.sel rect{stroke:var(--accent);stroke-width:2.6;fill:var(--accent-soft)}
+.pnode:hover rect{stroke:var(--ink)}
+.pnode .pn{font-weight:700;font-size:13px}
+.pnode .ps{font-size:11px;fill:var(--muted)}
+.pcenter rect{fill:var(--accent);stroke:var(--accent)}
+.pcenter text{fill:var(--accent-ink)!important;font-weight:800;font-size:15px;letter-spacing:.06em}
+.pcenter .ps{fill:var(--accent-ink)!important;font-weight:500;font-size:11px;letter-spacing:0;opacity:.9}
+.pedge{fill:none;stroke-width:2}
+.pedge.amont{stroke:var(--chk)} .pedge.aval{stroke:var(--run);stroke-dasharray:6 4} .pedge.both{stroke:var(--bad)}
+.pdot{stroke:var(--surface);stroke-width:1.5}
+.pcol{font-size:11px!important;font-weight:700;letter-spacing:.12em;fill:var(--muted)!important}
+.lvl{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;border:1px solid var(--c);background:var(--cs);color:var(--c);white-space:nowrap}
+.lvl-autonome{--c:var(--ok);--cs:var(--ok-soft)} .lvl-lecture{--c:var(--run);--cs:var(--run-soft)} .lvl-coordination{--c:var(--bad);--cs:var(--bad-soft)}
+.mx{border-collapse:collapse;font-size:12.5px;width:100%}
+.mx th,.mx td{border:1px solid var(--line);padding:6px 7px;text-align:center;vertical-align:middle}
+.mx thead th{background:var(--surface-2);font-size:11.5px;font-weight:700;white-space:nowrap}
+.mx tbody th{text-align:left;font-weight:600;background:var(--surface);white-space:nowrap}
+.mx td.L{background:var(--run-soft);color:var(--run);font-weight:700} .mx td.M{background:var(--bad-soft);color:var(--bad);font-weight:700}
+.mx td.S{background:var(--chk-soft);color:var(--chk);font-weight:700}
+.phase{display:flex;flex-direction:column;gap:10px}
+.phase-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.phase-h .pk{font-family:var(--font-mono);font-size:12px;color:var(--accent)}
+.lot{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.lot-h{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
+.lot-h .lt{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;flex:1;min-width:240px}
+.lot-h .lc{font-family:var(--font-mono);font-size:12.5px;font-weight:600;color:var(--accent)}
+.lot-h .pill{width:auto;min-width:130px}
+.lot .meta2{display:flex;flex-wrap:wrap;gap:6px}
+.lot .meta2 span{font-size:12px;border:1px solid var(--line);border-radius:4px;padding:1px 7px;background:var(--surface-2)}
+.lot .meta2 .blk{border-color:var(--run);color:var(--run);background:var(--run-soft);font-weight:600}
+.lot .meta2 .sch{border-color:var(--chk);color:var(--chk);background:var(--chk-soft);font-weight:600}
+.deps{width:100%;border-collapse:collapse;font-size:13px}
+.deps td,.deps th{padding:6px 8px;border-top:1px solid var(--line);text-align:left;vertical-align:top}
+.deps th{font-size:11.5px;color:var(--muted);font-weight:700;border-top:0}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.rules div{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:13.5px}
+.rules b{display:block;font-size:12px;color:var(--accent);letter-spacing:.04em;margin-bottom:3px}
+@media (max-width:760px){ .req{grid-template-columns:1fr} .tcase{grid-template-columns:1fr} .tcase dl{grid-template-columns:1fr} }
+
+.notice{background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:16px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:9px 16px;border-radius:6px;font-size:13.5px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+.section-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.section-h p{color:var(--muted);font-size:13.5px;max-width:70ch}
+.panel{display:flex;flex-direction:column;gap:14px}
+
+@media (max-width:760px){
+  .summary{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .head{grid-template-columns:1fr}
+  .layer{grid-template-columns:1fr}
+  .layer .ln{border-right:0;border-bottom:1px solid var(--line)}
+  .feat{grid-template-columns:1fr}
+  .feat .acts{justify-content:flex-start}
+  .form{grid-template-columns:1fr}
+  .dec .kv{grid-template-columns:1fr}
+  .search{width:100%}
+}
+@media (prefers-reduced-motion:no-preference){ .bar span,.mini span{transition:width .4s ease} }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div>
+      <div class="eyebrow">Tableau de suivi du module</div>
+      <div class="titleline">
+        <h1 id="modName">Mon module</h1>
+        <span class="code" id="modCode">MODULE</span>
+      </div>
+      <p class="sub" id="modSub">Ce que fait le module, où il s'insère dans l'architecture, ce qui est livré et ce qui reste à arbitrer.</p>
+    </div>
+    <div class="sync" id="sync"><i></i><span>Connexion…</span></div>
+  </header>
+
+  <section class="summary" aria-label="Synthèse">
+    <div class="tile">
+      <div class="eyebrow">Avancement des fonctionnalités</div>
+      <div class="big" id="pct">–<small id="pctSub"></small></div>
+      <div class="bar" id="bar"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="tile">
+      <div class="eyebrow">Arbitrages à trancher</div>
+      <div class="big" id="decOpen">–</div>
+      <div class="legend" id="decLegend"></div>
+    </div>
+    <div class="tile">
+      <div class="eyebrow">Ma prise en main</div>
+      <div class="big" id="stepPct">–</div>
+      <div class="bar" id="stepBar"></div>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+(function(){
+"use strict";
+const FEAT = {a_faire:"À faire",en_cours:"En cours",a_verifier:"À vérifier",bloque:"Bloqué",termine:"Terminé"};
+const FEAT_ORDER = ["termine","a_verifier","en_cours","bloque","a_faire"];
+const DEC = {a_trancher:"À trancher",tranche:"Tranché",applique:"Appliqué dans le code",abandonne:"Écarté"};
+const FICHE = [
+  {k:"definition",label:"Définition"},
+  {k:"but",label:"But"},
+  {k:"usage",label:"Utilisation dans le système",wide:true},
+  {k:"architecture",label:"Place dans l'architecture",kind:"layers",wide:true,hint:"Une couche par ligne, au format « Couche :: contenu »."},
+  {k:"liens",label:"Interactions avec les autres modules",wide:true},
+  {k:"docs",label:"Documents de référence",kind:"list",hint:"Un document par ligne."},
+  {k:"fichiers",label:"Fichiers clés du code",kind:"list",hint:"Un chemin par ligne."}
+];
+const TABS = [["apercu","Vue d'ensemble"],["demarrage","Démarrage"],["lecture","Lecture"],["merise","Modèle MERISE"],["exigences","Exigences & recette"],["plan","Plan de développement"],["devenv","Boucle de dev"],["fonctionnalites","Fonctionnalités"],["decisions","Arbitrages & décisions"]];
+const COUV = {couvert:"Couvert",partiel:"Partiel",non_couvert:"Non couvert",a_verifier:"À vérifier"};
+const TEST = {non_execute:"Non exécuté",ok:"OK",ko:"KO",bloque:"Bloqué"};
+
+const LOT_ST = {a_faire:"À faire",en_cours:"En cours",termine:"Terminé",bloque:"Bloqué"};
+const LVL = {autonome:"🟢 Dans mon périmètre",lecture:"🟡 Lecture du module d'une autre équipe",coordination:"🔴 Demande à une autre équipe"};
+const S = {db:null,fiche:{},feats:[],decs:[],steps:[],docs:[],mcd:null,exig:[],tests:[],plan:null,pSel:null,pPhase:"tous",
+  loaded:{fiche:false,feats:false,decs:false,steps:false,docs:false,mcd:false,exig:false,tests:false,plan:false},
+  tab:"apercu",fF:"tous",fD:"tous",q:"",edit:{},add:{},confirm:null,pending:false,dbOff:false,docSel:null,showRead:false,
+  mVue:null,mAttrs:true,mZoom:1,mJson:false,drag:null,xView:"exigences",xPer:"",xF:"tous"};
+const MODN = () => (S.fiche && S.fiche.nom) || "ce module";
+function perimetres(){
+  const lab={}; String((S.fiche&&S.fiche.perimetres)||"").split("\n").forEach(l=>{ const i=l.indexOf(":"); if(i>0) lab[l.slice(0,i).trim()]=l.slice(i+1).trim(); });
+  const codes=[...new Set([...S.exig,...S.tests].map(x=>x.perimetre).filter(Boolean))];
+  return codes.map(c=>[c,lab[c]||c]);
+}
+const tabVisible = k => k==="devenv" ? !!S.devenv : k==="plan" ? !!S.plan :k==="merise" ? !!S.mcd :k==="exigences" ? (S.exig.length+S.tests.length)>0 : true;
+const mdCache = new Map();
+
+try{ const t = localStorage.getItem("suivi-module-tab"); if(t && TABS.some(x=>x[0]===t)) S.tab=t; }catch(e){}
+const h0 = (location.hash||"").slice(1); if(TABS.some(x=>x[0]===h0)) S.tab=h0;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const inl = s => esc(s).replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+function md(s){
+  if(!s||!String(s).trim()) return '<p class="empty">Non renseigné.</p>';
+  let out="",list=false;
+  for(const raw of String(s).split("\n")){
+    const t=raw.trim();
+    if(/^[-•]\s+/.test(t)){ if(!list){out+="<ul>";list=true;} out+="<li>"+inl(t.replace(/^[-•]\s+/,""))+"</li>"; }
+    else { if(list){out+="</ul>";list=false;} if(t) out+="<p>"+inl(t)+"</p>"; }
+  }
+  return out+(list?"</ul>":"");
+}
+const today = () => new Date().toISOString().slice(0,10);
+const fmtDate = d => { if(!d) return ""; const [y,m,j]=String(d).slice(0,10).split("-"); return j&&m&&y ? `${j}/${m}/${y}` : esc(d); };
+let toastT; function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,2600); }
+const newId = p => p+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const val = id => { const el=$(id); return el ? el.value.trim() : ""; };
+
+/* ---------- rendu ---------- */
+function isTyping(){ const a=document.activeElement; return a && $("main").contains(a) && /^(INPUT|TEXTAREA)$/.test(a.tagName) && a.type!=="checkbox"; }
+function schedule(){ if(isTyping()){ S.pending=true; return; } render(); }
+document.addEventListener("focusout",()=>{ setTimeout(()=>{ if(S.pending && !isTyping()){ S.pending=false; render(); } },0); });
+
+function counts(list,keys){ const c={}; keys.forEach(k=>c[k]=0); list.forEach(x=>{ if(c[x.statut]!=null) c[x.statut]++; else c[keys[keys.length-1]]++; }); return c; }
+
+function renderSummary(){
+  const n=S.feats.length, c=counts(S.feats,["termine","a_verifier","en_cours","bloque","a_faire"]);
+  const pct = n ? Math.round(c.termine*100/n) : 0;
+  $("pct").innerHTML = (n?pct+" %":"–")+`<small>${c.termine} / ${n} terminées</small>`;
+  $("bar").innerHTML = n ? FEAT_ORDER.map(k=>c[k]?`<span class="s-${k}" style="width:${c[k]*100/n}%;background:var(--c)" title="${FEAT[k]} : ${c[k]}"></span>`:"").join("") : "";
+  $("legend").innerHTML = FEAT_ORDER.map(k=>`<span class="s-${k}"><i class="dot"></i>${FEAT[k]} <b>${c[k]}</b></span>`).join("");
+  const d=counts(S.decs,["a_trancher","tranche","applique","abandonne"]);
+  $("decOpen").textContent = S.loaded.decs ? d.a_trancher : "–";
+  $("decLegend").innerHTML = ["tranche","applique","abandonne"].map(k=>`<span class="s-${k}"><i class="dot"></i>${DEC[k]} <b>${d[k]}</b></span>`).join("");
+  const sn=S.steps.length, sd=S.steps.filter(s=>s.fait).length;
+  $("stepPct").innerHTML = sn ? `${sd}<small>/ ${sn} étapes</small>` : "–";
+  $("stepBar").innerHTML = sn ? `<span style="width:${sd*100/sn}%;background:var(--accent)"></span>` : "";
+  if(S.fiche.nom) $("modName").textContent=S.fiche.nom;
+  if(S.fiche.code) $("modCode").textContent=S.fiche.code;
+  if(S.fiche.accroche) $("modSub").textContent=S.fiche.accroche;
+}
+
+function renderTabs(){
+  const open = {demarrage:S.steps.filter(s=>!s.fait).length, lecture:S.docs.filter(d=>!d.lu).length, fonctionnalites:S.feats.filter(f=>f.statut!=="termine").length, decisions:S.decs.filter(d=>d.statut==="a_trancher").length};
+  open.exigences = S.tests.filter(t=>(t.statut||"non_execute")==="non_execute").length;
+  if(!tabVisible(S.tab)) S.tab="apercu";
+  $("tabs").innerHTML = TABS.filter(([k])=>tabVisible(k)).map(([k,l])=>`<button class="tab" role="tab" id="tab-${k}" aria-selected="${S.tab===k}" data-a="tab" data-k="${k}">${l}${open[k]!=null&&open[k]>0?`<span class="n">${open[k]}</span>`:""}</button>`).join("");
+}
+
+function ficheBlock(f){
+  const key="fiche:"+f.k, v=S.fiche[f.k]||"";
+  let body;
+  if(S.edit[key]){
+    body = `<textarea class="edit" id="fx-${f.k}" aria-label="${esc(f.label)}">${esc(v)}</textarea>
+      ${f.hint?`<p class="hint">${esc(f.hint)}</p>`:`<p class="hint">Mise en forme : « - » en début de ligne pour une liste, **gras**, \`code\`.</p>`}
+      <div class="row-actions"><button class="btn primary" data-a="saveFiche" data-k="${f.k}">Enregistrer</button><button class="btn" data-a="cancel" data-k="${key}">Annuler</button></div>`;
+  } else if(f.kind==="layers"){
+    const rows = v.split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{ const i=l.indexOf("::"); return i<0?["",l]:[l.slice(0,i).trim(),l.slice(i+2).trim()]; });
+    body = rows.length ? `<div class="layers">${rows.map((r,i)=>`<div class="layer"><div class="ln"><span class="k">${String(i+1).padStart(2,"0")}</span>${inl(r[0])}</div><div class="lc">${inl(r[1])}</div></div>`).join("")}</div>` : md("");
+  } else if(f.kind==="list"){
+    const rows=v.split("\n").map(l=>l.trim().replace(/^[-•]\s+/,"")).filter(Boolean);
+    body = rows.length ? `<ul class="reflist">${rows.map(r=>`<li>${esc(r)}</li>`).join("")}</ul>` : md("");
+  } else body = `<div class="prose">${md(v)}</div>`;
+  return `<div class="block${f.wide?" wide":""}"><div class="bh"><h2>${esc(f.label)}</h2>${S.edit[key]?"":`<button class="btn ghost" data-a="edit" data-k="${key}" aria-label="Modifier ${esc(f.label)}">Modifier</button>`}</div>${body}</div>`;
+}
+
+const ETAT = {existe:"Existe",partiel:"Partiel",a_dev:"À développer"};
+function cycleSvg(c){
+  const X=150, BW=430, BH=70, G=34, TOP=20, n=c.etapes.length, idx={}; c.etapes.forEach((e,i)=>idx[e.id]=i);
+  const y=i=>TOP+i*(BH+G), H=TOP+n*(BH+G), W=X+BW+60+(c.retours||[]).length*46+170;
+  let s=`<defs><marker id="carr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+    <marker id="crar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--run)"/></marker></defs>`;
+  c.etapes.forEach((e,i)=>{ if(i<n-1) s+=`<line x1="${X+BW/2}" y1="${y(i)+BH}" x2="${X+BW/2}" y2="${y(i+1)-2}" style="stroke:var(--ink)" stroke-width="1.6" marker-end="url(#carr)"/>`; });
+  (c.retours||[]).forEach((r,k)=>{ const a=idx[r.de], b=idx[r.vers]; if(a==null||b==null) return;
+    const x0=X+BW, xo=x0+36+k*46, ya=y(a)+BH/2+(k%2?8:-8), yb=y(b)+BH/2+(k%2?8:-8);
+    s+=`<path d="M${x0},${ya} H${xo} V${yb} H${x0+2}" fill="none" style="stroke:var(--run)" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#crar)"/>`;
+    s+=`<text x="${X+BW+36+((c.retours||[]).length-1)*46+16}" y="${(ya+yb)/2+4}" font-size="11" style="fill:var(--run)" font-weight="600">${esc(r.label)}</text>`; });
+  c.etapes.forEach((e,i)=>{ const yy=y(i), col=e.etat==="existe"?"var(--ok)":e.etat==="partiel"?"var(--run)":"var(--bad)";
+    s+=`<text x="${X-14}" y="${yy+28}" text-anchor="end" font-size="12" font-weight="700" style="fill:var(--ink)">${esc(e.acteur)}</text>
+      <text x="${X-14}" y="${yy+45}" text-anchor="end" font-size="10.5" style="fill:var(--muted);font-family:var(--font-mono)">${esc(e.exig||"")}</text>
+      <g><title>${esc(e.regle||"")}</title><rect x="${X}" y="${yy}" width="${BW}" height="${BH}" rx="8" style="fill:var(--surface);stroke:var(--line-strong)" stroke-width="1.4"/>
+      <rect x="${X}" y="${yy}" width="6" height="${BH}" rx="3" style="fill:${col}"/>
+      <text x="${X+20}" y="${yy+24}" font-size="13.5" font-weight="700" style="fill:var(--ink)">${i+1}. ${esc(e.titre)}</text>
+      <text x="${X+BW-12}" y="${yy+24}" text-anchor="end" font-size="10.5" style="font-family:var(--font-mono);fill:var(--accent)">${esc(e.statut||"")}</text>
+      ${wrapText(e.regle||"",64).slice(0,2).map((t,j)=>`<text x="${X+20}" y="${yy+44+j*15}" font-size="11.5" style="fill:var(--muted)">${esc(t)}</text>`).join("")}</g>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Cycle de vie">${s}</svg>`;
+}
+function wrapText(t,max){ const out=[]; let cur=""; for(const w of String(t).split(/\s+/)){ if((cur+" "+w).trim().length>max){ out.push(cur.trim()); cur=w; } else cur+=" "+w; } if(cur.trim()) out.push(cur.trim()); if(out.length>2) out[1]=out[1].replace(/.{0,2}$/,"…"); return out; }
+function cycleSection(){
+  const c=S.cycle; if(!c) return "";
+  return `<section class="sec"><h2>${esc(c.titre||"Cycle de vie")}</h2>
+    <p class="hint">${inl(c.desc||"")}</p>
+    <div class="legend"><span><i class="dot" style="background:var(--ok)"></i>Existe dans le code</span><span><i class="dot" style="background:var(--run)"></i>Partiel</span><span><i class="dot" style="background:var(--bad)"></i>À développer</span><span style="color:var(--run)">┄ retour en arrière</span></div>
+    <div class="pmap-wrap">${cycleSvg(c)}</div></section>`;
+}
+function renderApercu(){
+  return `<div class="panel"><div class="grid2">${FICHE.map(ficheBlock).join("")}</div></div>`;
+}
+
+function renderDemarrage(){
+  const steps=[...S.steps].sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  const rows = steps.map((s,i)=>{
+    const key="step:"+s.id;
+    if(S.edit[key]) return `<li class="step"><span class="num">${String(i+1).padStart(2,"0")}</span><div class="form inline" style="grid-column:2/-1">
+      <label class="field full">Étape<input id="se-${s.id}-titre" value="${esc(s.titre)}"></label>
+      <label class="field full">Détail<textarea id="se-${s.id}-detail">${esc(s.detail)}</textarea></label>
+      <div class="row-actions full"><button class="btn primary" data-a="saveStep" data-k="${s.id}">Enregistrer</button><button class="btn" data-a="cancel" data-k="${key}">Annuler</button>${delBtn("step",s.id)}</div></div></li>`;
+    return `<li class="step${s.fait?" done":""}"><span class="num">${String(i+1).padStart(2,"0")}</span>
+      <label><input type="checkbox" id="sc-${s.id}" data-a="toggleStep" data-k="${s.id}" ${s.fait?"checked":""}><span><span class="st">${inl(s.titre)}</span>${s.detail?`<span class="fd" style="display:block">${inl(s.detail)}</span>`:""}${s.fait&&s.faitLe?`<span class="meta"><span>Fait le ${fmtDate(s.faitLe)}</span></span>`:""}</span></label>
+      <div class="row-actions">${(()=>{ const ds=S.docs.filter(x=>x.etape===s.id).sort((a,b)=>(a.ordre||0)-(b.ordre||0)); if(!ds.length) return "";
+        const nl=ds.filter(x=>x.lu).length, next=ds.find(x=>!x.lu)||ds[0];
+        return `${ds.length>1?`<span class="hint" style="align-self:center">${nl} / ${ds.length} documents lus</span>`:""}<button class="btn${s.fait?" ghost":""}" data-a="goDoc" data-k="${next.id}">${s.fait?"Relire":"Lire"}</button>`; })()}<button class="btn ghost" data-a="edit" data-k="${key}">Modifier</button></div></li>`;
+  }).join("");
+  const add = S.add.step ? `<div class="form">
+      <label class="field full">Nouvelle étape<input id="ns-titre" placeholder="Ex. Lancer l’application en local et ouvrir l’écran du module"></label>
+      <label class="field full">Détail<textarea id="ns-detail"></textarea></label>
+      <div class="row-actions full"><button class="btn primary" data-a="addStep">Ajouter</button><button class="btn" data-a="closeAdd" data-k="step">Annuler</button></div></div>`
+    : `<div><button class="btn" data-a="openAdd" data-k="step">+ Ajouter une étape</button></div>`;
+  return `<div class="panel"><div class="section-h"><div><h2>Comment démarrer sur ce module</h2><p>Le parcours de prise en main, dans l'ordre. Cochez chaque étape une fois faite.</p></div></div>
+    ${steps.length?`<ol class="steps">${rows}</ol>`:`<p class="notice">Aucune étape pour l'instant.</p>`}${add}</div>`;
+}
+
+function statusSelect(id,cur,map,action){
+  return `<select class="pill s-${cur}" id="${id}" data-a="${action}" aria-label="Statut">${Object.keys(map).map(k=>`<option value="${k}" ${k===cur?"selected":""}>${map[k]}</option>`).join("")}</select>`;
+}
+function delBtn(kind,id){
+  return S.confirm===kind+":"+id
+    ? `<button class="btn danger" data-a="del" data-kind="${kind}" data-k="${id}">Confirmer la suppression</button><button class="btn ghost" data-a="noDel">Garder</button>`
+    : `<button class="btn ghost danger" data-a="askDel" data-kind="${kind}" data-k="${id}">Supprimer</button>`;
+}
+function paliers(){ return [...new Set(S.feats.map(f=>f.palier).filter(Boolean))]; }
+
+function featForm(f,pre){
+  const id=f?f.id:"new", p=pre||"fe-"+id;
+  return `<div class="form ${f?"inline":""}">
+    <label class="field full">Fonctionnalité<input id="${p}-titre" value="${esc(f?f.titre:"")}" placeholder="Ex. Saisie de l'avancement depuis la fiche"></label>
+    <label class="field">Palier / lot<input id="${p}-palier" list="dl-paliers" value="${esc(f?f.palier:(paliers()[paliers().length-1]||""))}"></label>
+    <label class="field">Statut<select id="${p}-statut">${Object.keys(FEAT).map(k=>`<option value="${k}" ${(f?f.statut:"a_faire")===k?"selected":""}>${FEAT[k]}</option>`).join("")}</select></label>
+    <label class="field">Référence (spec, §)<input id="${p}-ref" value="${esc(f?f.ref:"")}" placeholder="SPEC-XXX §2"></label>
+    <label class="field">Note<input id="${p}-note" value="${esc(f?f.note:"")}"></label>
+    <label class="field full">Description<textarea id="${p}-description">${esc(f?f.description:"")}</textarea></label>
+    <div class="row-actions full">${f?`<button class="btn primary" data-a="saveFeat" data-k="${id}">Enregistrer</button><button class="btn" data-a="cancel" data-k="feat:${id}">Annuler</button>${delBtn("feat",id)}`
+      :`<button class="btn primary" data-a="addFeat">Ajouter</button><button class="btn" data-a="closeAdd" data-k="feat">Annuler</button>`}</div></div>`;
+}
+
+function renderFeats(){
+  const c=counts(S.feats,["termine","a_verifier","en_cours","bloque","a_faire"]);
+  const q=S.q.toLowerCase();
+  const list=S.feats.filter(f=>(S.fF==="tous"||f.statut===S.fF) && (!q || [f.titre,f.description,f.ref,f.palier,f.note].join(" ").toLowerCase().includes(q)));
+  const order=[]; const groups={};
+  [...S.feats].sort((a,b)=>(a.ordre||0)-(b.ordre||0)).forEach(f=>{ const g=f.palier||"Sans palier"; if(!groups[g]){groups[g]=[];order.push(g);} });
+  list.sort((a,b)=>(a.ordre||0)-(b.ordre||0)).forEach(f=>groups[f.palier||"Sans palier"].push(f));
+  const html = order.filter(g=>groups[g].length).map(g=>{
+    const all=S.feats.filter(f=>(f.palier||"Sans palier")===g), done=all.filter(f=>f.statut==="termine").length;
+    return `<section class="group"><div class="group-h"><h3>${esc(g)}</h3><span class="gp">${done} / ${all.length}<span class="mini"><span style="width:${all.length?done*100/all.length:0}%"></span></span></span></div>
+      ${groups[g].map(f=>{
+        if(S.edit["feat:"+f.id]) return `<div class="feat" style="grid-template-columns:1fr">${featForm(f)}</div>`;
+        const done=f.statut==="termine";
+        return `<div class="feat${done?" is-done":""}">
+          <div>${statusSelect("fs-"+f.id,f.statut||"a_faire",FEAT,"featStatus")}</div>
+          <div><div class="ft">${inl(f.titre)}</div>${f.description?`<div class="fd">${inl(f.description)}</div>`:""}
+            <div class="meta">${f.ref?`<span class="ref">${esc(f.ref)}</span>`:""}${f.note?`<span>${inl(f.note)}</span>`:""}${done&&f.termineLe?`<span>Terminé le ${fmtDate(f.termineLe)}</span>`:""}</div></div>
+          <div class="row-actions acts">${done?"":`<button class="btn done" data-a="markDone" data-k="${f.id}">Marquer terminé</button>`}<button class="btn ghost" data-a="edit" data-k="feat:${f.id}">Modifier</button></div>
+        </div>`;}).join("")}</section>`;
+  }).join("");
+  const add = S.add.feat ? featForm(null,"nf") : `<button class="btn primary" data-a="openAdd" data-k="feat">+ Nouvelle fonctionnalité</button>`;
+  return `<div class="panel">
+    <div class="section-h"><div><h2>Fonctionnalités et paliers</h2><p>Changez le statut directement dans la pastille, ou cliquez « Marquer terminé » quand une fonctionnalité est livrée et testée (aide à jour comprise).</p></div>${S.add.feat?"":add}</div>
+    ${S.add.feat?add:""}
+    <div class="toolbar"><div class="chips">
+      <button class="chip" aria-pressed="${S.fF==="tous"}" data-a="fF" data-k="tous">Toutes · ${S.feats.length}</button>
+      ${["a_faire","en_cours","a_verifier","bloque","termine"].map(k=>`<button class="chip" aria-pressed="${S.fF===k}" data-a="fF" data-k="${k}">${FEAT[k]} · ${c[k]}</button>`).join("")}
+    </div><input class="search" id="q" type="search" placeholder="Rechercher…" value="${esc(S.q)}" aria-label="Rechercher une fonctionnalité"></div>
+    <datalist id="dl-paliers">${paliers().map(p=>`<option value="${esc(p)}">`).join("")}</datalist>
+    ${html || `<p class="notice">Aucune fonctionnalité ne correspond à ce filtre.</p>`}
+  </div>`;
+}
+
+function decForm(d,pre){
+  const id=d?d.id:"new", p=pre||"de-"+id;
+  const F=(k,l,ph,cls)=>`<label class="field ${cls||""}">${l}<input id="${p}-${k}" value="${esc(d?d[k]:"")}" placeholder="${esc(ph||"")}"></label>`;
+  const T=(k,l)=>`<label class="field full">${l}<textarea id="${p}-${k}">${esc(d?d[k]:"")}</textarea></label>`;
+  return `<div class="form ${d?"inline":""}">
+    ${F("code","Code","Ex. A12")}
+    <label class="field">Statut<select id="${p}-statut">${Object.keys(DEC).map(k=>`<option value="${k}" ${(d?d.statut:"a_trancher")===k?"selected":""}>${DEC[k]}</option>`).join("")}</select></label>
+    ${F("sujet","Question à trancher","","full")}
+    ${T("contexte","Contexte")}${T("recommandation","Recommandation")}${T("decision","Décision retenue")}
+    ${F("par","Tranché par","Ex. Sponsor / DGA")}${F("date","Date","AAAA-MM-JJ")}
+    ${F("ref","Où c'est consigné","DECISIONS.md, compte rendu du…","full")}
+    <div class="row-actions full">${d?`<button class="btn primary" data-a="saveDec" data-k="${id}">Enregistrer</button><button class="btn" data-a="cancel" data-k="dec:${id}">Annuler</button>${delBtn("dec",id)}`
+      :`<button class="btn primary" data-a="addDec">Ajouter</button><button class="btn" data-a="closeAdd" data-k="dec">Annuler</button>`}</div></div>`;
+}
+
+function renderDecs(){
+  const c=counts(S.decs,["a_trancher","tranche","applique","abandonne"]);
+  const list=S.decs.filter(d=>S.fD==="tous"||d.statut===S.fD).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  const items=list.map(d=>{
+    if(S.edit["dec:"+d.id]) return decForm(d);
+    const st=d.statut||"a_trancher";
+    return `<article class="dec s-${st}">
+      <div class="dec-h"><div class="t"><span class="code">${esc(d.code||"—")}</span><h3>${inl(d.sujet)}</h3></div>
+        <div class="dec-side">${statusSelect("ds-"+d.id,st,DEC,"decStatus")}<button class="btn ghost" data-a="edit" data-k="dec:${d.id}">Modifier</button></div></div>
+      <dl class="kv">
+        ${d.contexte?`<dt>Contexte</dt><dd>${inl(d.contexte)}</dd>`:""}
+        ${d.recommandation?`<dt>Recommandation</dt><dd>${inl(d.recommandation)}</dd>`:""}
+        <dt>Décision retenue</dt><dd class="decision">${d.decision?inl(d.decision):'<span class="empty">En attente d’arbitrage</span>'}</dd>
+        ${(d.par||d.date)?`<dt>Tranché</dt><dd>${[esc(d.par),fmtDate(d.date)].filter(Boolean).join(" · ")}</dd>`:""}
+        ${d.ref?`<dt>Consigné dans</dt><dd class="mono">${esc(d.ref)}</dd>`:""}
+      </dl></article>`;
+  }).join("");
+  return `<div class="panel">
+    <div class="section-h"><div><h2>Arbitrages et décisions</h2><p>Les questions ouvertes et les choix déjà faits. Quand une décision est prise ici, reportez-la aussi dans <code>DECISIONS.md</code> du dépôt pour qu'elle suive le code.</p></div>${S.add.dec?"":`<button class="btn primary" data-a="openAdd" data-k="dec">+ Nouvel arbitrage</button>`}</div>
+    ${S.add.dec?decForm(null,"nd"):""}
+    <div class="chips"><button class="chip" aria-pressed="${S.fD==="tous"}" data-a="fD" data-k="tous">Tous · ${S.decs.length}</button>
+      ${Object.keys(DEC).map(k=>`<button class="chip" aria-pressed="${S.fD===k}" data-a="fD" data-k="${k}">${DEC[k]} · ${c[k]}</button>`).join("")}</div>
+    <div class="decs">${items || `<p class="notice">Aucun arbitrage dans cette catégorie.</p>`}</div></div>`;
+}
+
+function mdFull(d){
+  const key=d.id+"|"+(d.contenu||"").length+"|"+(d.maj||"");
+  if(mdCache.has(key)) return mdCache.get(key);
+  let src=String(d.contenu||"").replace(/^﻿?---\r?\n[\s\S]*?\r?\n---\r?\n/,"");
+  let html;
+  if(window.marked && window.DOMPurify){
+    html = DOMPurify.sanitize(marked.parse(src,{gfm:true,breaks:false}));
+    html = html.replace(/<table>/g,'<div class="tbl"><table>').replace(/<\/table>/g,"</table></div>");
+  } else html = `<pre>${esc(src)}</pre>`;
+  mdCache.set(key,html); return html;
+}
+function renderLecture(){
+  const docs=[...S.docs].sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  const todo=docs.filter(d=>!d.lu), done=docs.filter(d=>d.lu);
+  let sel=docs.find(d=>d.id===S.docSel);
+  if(!sel || (sel.lu && !S.showRead)) { sel=todo[0]||null; S.docSel=sel?sel.id:null; }
+  const item=d=>`<button class="docitem${d.lu?" read":""}" data-a="openDoc" data-k="${d.id}" aria-current="${sel&&sel.id===d.id}"><span class="dt">${esc(d.titre)}</span><span class="dp">${esc(d.chemin)}</span></button>`;
+  const list=`<div class="doclist"><div class="eyebrow">À lire · ${todo.length}</div>
+    ${todo.length?todo.map(item).join(""):`<p class="hint">Tous les documents sont lus.</p>`}
+    ${done.length?`<div class="lh"><span class="eyebrow">Lus · ${done.length}</span><button class="btn ghost" data-a="toggleRead">${S.showRead?"Masquer":"Afficher"}</button></div>${S.showRead?done.map(item).join(""):""}`:""}</div>`;
+  let reader;
+  if(!sel) reader=`<div class="reader"><h2>Lecture terminée</h2><p class="hint" style="margin-top:8px">Vous avez lu tous les documents de ce module. Ouvrez « Lus » pour en relire un.</p></div>`;
+  else reader=`<article class="reader" id="reader">
+      <div class="reader-h"><span class="path">${esc(sel.chemin)}</span><h2>${esc(sel.titre)}</h2>
+        <span class="snap">Copie du fichier du dépôt au ${fmtDate(sel.maj)}${sel.lu&&sel.luLe?` · lu le ${fmtDate(sel.luLe)}`:""}</span></div>
+      <div class="md">${mdFull(sel)}</div>
+      <div class="reader-foot">${sel.lu
+        ?`<p>Document déjà lu. Vous pouvez le remettre dans la liste à lire.</p><button class="btn" data-a="unread" data-k="${sel.id}">Remettre à lire</button>`
+        :`<p>Arrivé au bout ? Marquez-le terminé : il sort de la liste et le document suivant s'ouvre.</p><button class="btn primary big" data-a="readDone" data-k="${sel.id}">Terminé</button>`}</div>
+    </article>`;
+  return `<div class="panel"><div class="section-h"><div><h2>Documents à lire</h2><p>Les specs et analyses du module, mises en forme. Lisez-les dans l'ordre de la liste.</p></div></div>
+    ${docs.length?`<div class="reading">${list}${reader}</div>`:`<p class="notice">Aucun document à lire pour l'instant.</p>`}</div>`;
+}
+
+/* ---------- Modèle MERISE ---------- */
+const LH=15, HEAD=26, EW=212;
+function entSize(e,compact){ const n=compact||!S.mAttrs ? 1 : e.attrs.length; return {w:EW,h:HEAD+10+n*LH}; }
+function edgePt(b,ax,ay,tx,ty){ const dx=ax-tx, dy=ay-ty; let t=Infinity;
+  if(dx) t=Math.min(t,((dx>0?b.x+b.w:b.x)-tx)/dx); if(dy) t=Math.min(t,((dy>0?b.y+b.h:b.y)-ty)/dy);
+  if(!isFinite(t)||t<0) t=0; return [tx+dx*t, ty+dy*t]; }
+function mcdSvg(v){
+  const m=S.mcd, ents={}; m.entites.forEach(e=>ents[e.id]=e);
+  const box={};
+  for(const [id,p] of Object.entries(v.ent||{})){ const e=ents[id]; if(!e) continue; const s=entSize(e,p.compact); box[id]={x:p.x,y:p.y,w:s.w,h:s.h,cx:p.x+s.w/2,cy:p.y+s.h/2,e,compact:p.compact}; }
+  let links="",cards="",nodes="";
+  for(const a of m.assocs.filter(a=>a.vue===v.id)){
+    for(const l of a.liens){ const b=box[l.e]; if(!b) continue;
+      const tx=b.cx+((l.off||[])[0]||0), ty=b.cy+((l.off||[])[1]||0);
+      const [px,py]=edgePt(b,a.x,a.y,tx,ty);
+      links+=`<line class="mlink" x1="${a.x}" y1="${a.y}" x2="${px}" y2="${py}"/>`;
+      const dx=a.x-px, dy=a.y-py, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L, side=l.side||1;
+      const cx=px+ux*24-uy*13*side, cy=py+uy*24+ux*13*side;
+      cards+=`<g class="mcard"><rect x="${cx-18}" y="${cy-9}" width="36" height="17" rx="3"/><text x="${cx}" y="${cy+4}" text-anchor="middle">${esc(l.c)}</text></g>`;
+      if(l.role) cards+=`<text class="mrole" x="${cx}" y="${cy+21}" text-anchor="middle">${esc(l.role)}</text>`;
+    }
+    const at=(S.mAttrs&&a.attrs)?a.attrs:[], rx=Math.max(56,Math.max(a.nom.length*7.6,...at.map(t=>t.length*6.4))/2+18), ry=at.length?22+at.length*7:19;
+    nodes+=`<g class="massoc" data-drag="a:${a.id}" transform="translate(${a.x},${a.y})"><title>${esc(a.lecture||a.nom)}</title><ellipse rx="${rx}" ry="${ry}"/>`+
+      `<text class="mname" y="${at.length?-at.length*6+2:4}" text-anchor="middle">${esc(a.nom)}</text>`+
+      at.map((t,i)=>`<text class="mattr" y="${-at.length*6+16+i*13}" text-anchor="middle">${esc(t)}</text>`).join("")+`</g>`;
+  }
+  for(const [id,b] of Object.entries(box)){ const e=b.e, list=(b.compact||!S.mAttrs)?e.attrs.filter(x=>x.id):e.attrs;
+    nodes+=`<g class="ment" data-drag="e:${id}" transform="translate(${b.x},${b.y})"><title>${esc(e.desc||e.nom)}</title>`+
+      `<rect class="mbox" width="${b.w}" height="${b.h}" rx="3"/><rect class="mhead" width="${b.w}" height="${HEAD}" rx="3"/>`+
+      `<text class="mename" x="${b.w/2}" y="17" text-anchor="middle">${esc(e.nom)}</text>`+
+      list.map((x,i)=>`<text x="10" y="${HEAD+16+i*LH}"${x.id?' class="mid"':""}>${esc(x.n)}</text>`).join("")+`</g>`;
+  }
+  const z=S.mZoom;
+  return `<svg id="mcdsvg" viewBox="0 0 ${v.w} ${v.h}" width="${Math.round(v.w*z)}" height="${Math.round(v.h*z)}" role="img" aria-label="${esc(v.titre)}">${links}${cards}${nodes}</svg>`;
+}
+function cardTxt(c){ const [mi,ma]=String(c).split(","); return `${mi==="0"?"zéro":"un"} à ${ma==="n"?"plusieurs":ma==="1"?"un":ma}`; }
+function mld(){
+  const m=S.mcd, fk={}; m.entites.forEach(e=>fk[e.id]=[]);
+  const idOf=id=>{ const e=m.entites.find(x=>x.id===id); const a=e&&e.attrs.find(x=>x.id); return a?a.n:"id"; };
+  for(const a of m.assocs){ const s=a.liens.find(l=>l.fk); if(!s) continue; const o=a.liens.find(l=>l!==s)||s;
+    if(fk[s.e]) fk[s.e].push({n:s.fk, ref:o.e, refId:idOf(o.e), opt:s.c.startsWith("0")}); }
+  return m.entites.map(e=>`<div><b>${esc(e.nom)}</b> (`+[...e.attrs.map(x=>x.id?`<u>${esc(x.n)}</u>`:esc(x.n)),
+    ...fk[e.id].map(f=>`#${esc(f.n)}<i> → ${esc(f.ref)}.${esc(f.refId)}${f.opt?" (facultatif)":""}</i>`)].join(", ")+`)</div>`).join("");
+}
+function renderMerise(){
+  const m=S.mcd; if(!m) return `<p class="notice">Aucun modèle pour ce module.</p>`;
+  const vues=m.vues||[]; if(!S.mVue||!vues.find(v=>v.id===S.mVue)) S.mVue=vues[0]&&vues[0].id;
+  const v=vues.find(x=>x.id===S.mVue);
+  const ents={}; m.entites.forEach(e=>ents[e.id]=e);
+  const lienTxt=a=>a.liens.map(l=>`<span class="mono">${esc(l.e)}</span>${l.role?` <i>(${esc(l.role)})</i>`:""} <b>${esc(l.c)}</b>`).join(" — ");
+  const assocRows=m.assocs.map(a=>`<tr><td><b>${esc(a.nom)}</b>${a.attrs&&a.attrs.length?`<br><span class="hint">${a.attrs.map(esc).join(", ")}</span>`:""}</td><td>${lienTxt(a)}</td><td>${inl(a.lecture||"")}</td><td class="mono">${esc(a.exig||"")}</td><td>${a.vue?esc((vues.find(x=>x.id===a.vue)||{}).court||a.vue):'<span class="hint">tableau seul</span>'}</td></tr>`).join("");
+  const dico=m.entites.map(e=>`<tr><td><b>${esc(e.nom)}</b><br><span class="hint">${inl(e.desc||"")}</span></td><td>${e.attrs.map(x=>`<div><span class="mono${x.id?" mid":""}" style="${x.id?"text-decoration:underline;font-weight:600":""}">${esc(x.n)}</span>${x.d?` <span class="hint">— ${inl(x.d)}</span>`:""}</div>`).join("")}</td></tr>`).join("");
+  const regles=(m.regles||[]).map(r=>`<tr><td class="mono"><b>${esc(r.code)}</b></td><td>${inl(r.texte)}</td><td class="mono">${esc(r.exig||"")}</td></tr>`).join("");
+  const ecarts=(m.ecarts||[]).map(r=>`<tr><td><b>${esc(r.entite)}</b></td><td class="mono">${esc(r.existant)}</td><td><span class="badge s-${esc(r.statut)}">${esc(COUV[r.statut]||r.statut)}</span></td><td>${inl(r.note||"")}</td></tr>`).join("");
+  const json = S.mJson ? `<div class="block"><div class="bh"><h2>Modifier le modèle (JSON)</h2></div>
+      <textarea class="edit" id="mcd-json" style="min-height:360px;font-family:var(--font-mono);font-size:12px">${esc(JSON.stringify(Object.assign({},m,{id:undefined}),null,2))}</textarea>
+      <p class="hint">Entités (<code>entites</code>), associations et cardinalités (<code>assocs</code>), vues et positions (<code>vues</code>), règles, écarts. Le JSON est vérifié avant l'enregistrement.</p>
+      <div class="row-actions"><button class="btn primary" data-a="saveMcd">Enregistrer le modèle</button><button class="btn" data-a="mJson">Annuler</button></div></div>` : "";
+  return `<div class="panel">
+    <div class="section-h"><div><h2>${esc(m.titre||"Modèle conceptuel des données")}</h2><p>${inl(m.sousTitre||"")}</p></div>
+      ${S.mJson?"":`<button class="btn" data-a="mJson">Modifier le modèle</button>`}</div>
+    ${json}
+    <div class="mcd-bar"><div class="chips">${vues.map(x=>`<button class="chip" aria-pressed="${x.id===S.mVue}" data-a="mVue" data-k="${x.id}">${esc(x.titre)}</button>`).join("")}</div>
+      <div class="chips"><button class="chip" aria-pressed="${S.mAttrs}" data-a="mAttrs">Attributs</button>
+        <button class="chip" data-a="mZoom" data-k="-">−</button><button class="chip" data-a="mZoom" data-k="1">${Math.round(S.mZoom*100)} %</button><button class="chip" data-a="mZoom" data-k="+">+</button></div></div>
+    ${v?`<p class="hint">${inl(v.desc||"")} Faites glisser une entité ou une association pour réorganiser le schéma : la position est enregistrée.</p>
+    <div class="mcd-wrap" id="mcdwrap">${mcdSvg(v)}</div>`:""}
+    <div class="legend-mcd"><span><b>Rectangle</b> = entité, identifiant souligné</span><span><b>Ellipse</b> = association</span>
+      <span><code>min,max</code> près d'une entité = nombre de fois où une occurrence de cette entité participe à l'association</span>
+      <span><code>1,1</code> obligatoire et unique · <code>0,1</code> facultatif · <code>1,n</code> au moins un · <code>0,n</code> aucun ou plusieurs</span></div>
+    <section class="sec"><h2>Associations et cardinalités</h2><div class="tbl"><table class="tbl-plain"><thead><tr><th>Association</th><th>Entités et cardinalités</th><th>Lecture</th><th>Exigences</th><th>Vue</th></tr></thead><tbody>${assocRows}</tbody></table></div></section>
+    <section class="sec"><h2>Modèle logique (MLD)</h2><p class="hint">Déduit du MCD : chaque entité devient une table ; une association 1,1 ou 0,1 — 0,n devient une clé étrangère (#) du côté x,1. Toutes les tables portent en plus <code>organization_id</code> (isolation multi-tenant).</p><div class="mld">${mld()}</div></section>
+    <section class="sec"><h2>Dictionnaire des données</h2><div class="tbl"><table class="tbl-plain"><thead><tr><th>Entité</th><th>Attributs</th></tr></thead><tbody>${dico}</tbody></table></div></section>
+    ${regles?`<section class="sec"><h2>Règles de gestion</h2><div class="tbl"><table class="tbl-plain"><thead><tr><th>Code</th><th>Règle</th><th>Exigences</th></tr></thead><tbody>${regles}</tbody></table></div></section>`:""}
+    ${ecarts?`<section class="sec"><h2>Écarts avec le schéma actuel (Prisma)</h2><div class="tbl"><table class="tbl-plain"><thead><tr><th>Entité cible</th><th>Existant</th><th>État</th><th>Ce qui manque</th></tr></thead><tbody>${ecarts}</tbody></table></div></section>`:""}
+  </div>`;
+}
+/* déplacement à la souris */
+document.addEventListener("pointerdown",e=>{
+  const g=e.target.closest("#mcdsvg [data-drag]"); if(!g||!S.mcd) return;
+  const [kind,id]=g.dataset.drag.split(":"); const v=S.mcd.vues.find(x=>x.id===S.mVue); if(!v) return;
+  const ref = kind==="e" ? v.ent[id] : S.mcd.assocs.find(a=>a.id===id); if(!ref) return;
+  S.drag={ref,sx:e.clientX,sy:e.clientY,ox:ref.x,oy:ref.y,moved:false}; document.body.classList.add("dragging"); e.preventDefault();
+});
+document.addEventListener("pointermove",e=>{ const d=S.drag; if(!d) return;
+  d.ref.x=Math.round(d.ox+(e.clientX-d.sx)/S.mZoom); d.ref.y=Math.round(d.oy+(e.clientY-d.sy)/S.mZoom); d.moved=true;
+  const v=S.mcd.vues.find(x=>x.id===S.mVue), w=$("mcdwrap"); if(w&&v){ const sl=w.scrollLeft, st=w.scrollTop; w.innerHTML=mcdSvg(v); w.scrollLeft=sl; w.scrollTop=st; } });
+document.addEventListener("pointerup",async()=>{ const d=S.drag; if(!d) return; S.drag=null; document.body.classList.remove("dragging");
+  if(d.moved){ const data=JSON.parse(JSON.stringify(S.mcd)); delete data.id; await w(()=>S.db.doc("merise/mcd").set(data),"Position enregistrée"); } });
+
+/* ---------- Boucle de dev ---------- */
+const CMDS=[];
+function renderDevenv(){
+  const d=S.devenv; if(!d) return ""; CMDS.length=0;
+  const cmd=c=>{ const i=CMDS.push(c.cmd)-1; return `<div class="cmd"><div class="cmd-h"><span>${inl(c.desc||"")}</span><button class="btn ghost" data-a="copy" data-k="${i}">Copier</button></div><pre id="cmd-${i}"><code>${esc(c.cmd)}</code></pre></div>`; };
+  return `<div class="panel">
+    <div class="section-h"><div><h2>${esc(d.titre)}</h2><p>${inl(d.sousTitre||"")}</p></div></div>
+    <div class="rules">${(d.reperes||[]).map(r=>`<div><b>${esc(r.t)}</b>${inl(r.d)}</div>`).join("")}</div>
+    ${(d.sections||[]).map((s,i)=>`<section class="block"><div class="bh"><h2><span class="lc" style="font-family:var(--font-mono);color:var(--accent);margin-right:8px">${String(i+1).padStart(2,"0")}</span>${esc(s.titre)}</h2>${s.quand?`<span class="badge s-a_verifier">${esc(s.quand)}</span>`:""}</div>
+      ${s.desc?`<p class="hint">${inl(s.desc)}</p>`:""}${(s.cmds||[]).map(cmd).join("")}</section>`).join("")}
+    ${(d.notes||[]).length?`<section class="block"><h2>À savoir</h2><div class="prose"><ul>${d.notes.map(n=>`<li>${inl(n)}</li>`).join("")}</ul></div></section>`:""}
+  </div>`;
+}
+
+/* ---------- Plan de développement ---------- */
+const isMine = id => !!((S.plan&&S.plan.modules||[]).find(m=>m.id===id)||{}).mien;
+const extDeps = l => (l.deps||[]).filter(d=>!isMine(d.m));
+const lotLevel = l => extDeps(l).some(d=>d.t==="M") ? "coordination" : extDeps(l).some(d=>d.t==="L") ? "lecture" : "autonome";
+const depBadge = d => isMine(d.m) ? '<span class="lvl lvl-autonome">🟢 Mon module</span>' : d.t==="M" ? '<span class="lvl lvl-coordination">🔴 Demande</span>' : '<span class="lvl lvl-lecture">🟡 Lecture</span>';
+function planMap(p){
+  const W=1180, NW=272, NH=58, G=74, TOP=56;
+  const up=p.modules.filter(m=>m.sens!=="aval"), half=Math.ceil(up.length/2);
+  const left=up.slice(0,half), right=up.slice(half);
+  const rows=Math.max(left.length,right.length), H=TOP+rows*G+24, cx=W/2, cy=TOP+rows*G/2;
+  const worst=id=>{ if(isMine(id)) return ""; let w=""; for(const l of p.lots) for(const d of (l.deps||[])) if(d.m===id){ if(d.t==="M") w="M"; else if(!w) w="L"; } return w; };
+  const cnt=id=>{ let L=0,M=0; for(const l of p.lots){ const ds=(l.deps||[]).filter(d=>d.m===id); if(ds.some(d=>d.t==="M")) M++; else if(ds.length) L++; } return {L,M}; };
+  let edges="", nodes="", dots="";
+  const place=(list,side)=>list.forEach((m,i)=>{
+    const off=(rows-list.length)*G/2, x= side==="L" ? 40 : W-40-NW, y=TOP+off+i*G;
+    const ex= side==="L" ? x+NW : x, ey=y+NH/2, tx= side==="L" ? cx-118 : cx+118, ty=cy;
+    const k=(tx-ex)*0.45, w0=worst(m.id), cls= w0==="M"?"both":w0==="L"?"aval":"amont";
+    edges+=`<path class="pedge ${cls}" marker-end="url(#parr)" d="M${ex},${ey} C${ex+k},${ey} ${tx-k},${ty} ${tx},${ty}"/>`;
+    const w=worst(m.id), col = w==="M"?"var(--bad)":w==="L"?"var(--run)":"var(--ok)";
+    dots+=`<circle class="pdot" cx="${ex}" cy="${ey}" r="7" style="fill:${col}"/>`;
+    const c=cnt(m.id), sub= m.mien ? `Mon module · ${m.contacts.length} point${m.contacts.length>1?"s":""} de contact` : `${m.contacts.length} point${m.contacts.length>1?"s":""} de contact · ${c.L?c.L+" lot"+(c.L>1?"s":"")+" en lecture":""}${c.L&&c.M?" · ":""}${c.M?c.M+" demande"+(c.M>1?"s":""):""}${!c.L&&!c.M?"aucun lot":""}`;
+    nodes+=`<g class="pnode${S.pSel===m.id?" sel":""}" data-a="pSel" data-k="${m.id}" transform="translate(${x},${y})"><title>${esc(m.desc||m.nom)}</title>
+      <rect width="${NW}" height="${NH}" rx="6"/><text class="pn" x="14" y="23">${esc(m.nom)}</text><text class="ps" x="14" y="42">${esc(sub)}</text></g>`;
+  });
+  place(left,"L"); place(right,"R");
+  nodes+=`<g class="pcenter" transform="translate(${cx-118},${cy-46})"><rect width="236" height="92" rx="8"/>
+    <text x="118" y="40" text-anchor="middle">${esc(String(S.fiche.code||MODN()).toUpperCase().slice(0,22))}</text><text class="ps" x="118" y="62" text-anchor="middle">module suivi</text></g>`;
+  const head=`<defs><marker id="parr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker></defs>
+    <text class="pcol" x="${W/2}" y="30" text-anchor="middle">MODULES EN LIEN AVEC ${esc(MODN().toUpperCase())}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Carte des dépendances du module">${head}${edges}${nodes}${dots}</svg>`;
+}
+function renderPlan(){
+  const p=S.plan; if(!p) return `<p class="notice">Aucun plan pour ce module.</p>`;
+  const mods={}; p.modules.forEach(m=>mods[m.id]=m);
+  const lvlCount={autonome:0,lecture:0,coordination:0}; p.lots.forEach(l=>lvlCount[lotLevel(l)]++);
+  const done=p.lots.filter(l=>l.statut==="termine").length;
+  const sel=S.pSel&&mods[S.pSel];
+  const detail = sel ? (()=>{ const lots=p.lots.filter(l=>(l.deps||[]).some(d=>d.m===sel.id));
+    return `<div class="block"><div class="bh"><h2>${esc(sel.nom)}</h2><button class="btn ghost" data-a="pSel" data-k="">Fermer</button></div>
+      <p class="hint">${inl(sel.desc||"")} · Sens : <b>${sel.sens==="amont"?`${MODN()} utilise ce module`:sel.sens==="aval"?`ce module utilise ${MODN()}`:"dans les deux sens"}</b></p>
+      <div class="tbl"><table class="tbl-plain"><thead><tr><th>Fichier</th><th>Fonctions / éléments</th><th>Rôle pour ${esc(MODN())}</th></tr></thead><tbody>
+      ${sel.contacts.map(c=>`<tr><td class="mono">${esc(c.f)}</td><td class="mono">${esc(c.fn||"")}</td><td>${inl(c.usage||"")}</td></tr>`).join("")}</tbody></table></div>
+      ${lots.length?`<h3>Lots qui le touchent</h3><div class="tbl"><table class="tbl-plain"><thead><tr><th>Lot</th><th>Type</th><th>Point de contact</th><th>À faire</th></tr></thead><tbody>
+      ${lots.flatMap(l=>(l.deps||[]).filter(d=>d.m===sel.id).map(d=>`<tr><td><b>${esc(l.code)}</b> ${esc(l.titre)}</td><td>${depBadge(d)}</td><td class="mono">${esc(d.quoi)}</td><td>${inl(d.faire)}</td></tr>`)).join("")}</tbody></table></div>`:`<p class="hint">Aucun lot ne touche ce module.</p>`}</div>`; })() : "";
+  const mxMods=p.modules.filter(m=>m.sens!=="aval");
+  const matrix=`<div class="tbl"><table class="mx"><thead><tr><th style="text-align:left">Lot</th><th>Niveau</th><th>Schéma</th>${mxMods.map(m=>`<th title="${esc(m.nom)}">${esc(m.court||m.nom)}</th>`).join("")}</tr></thead><tbody>
+    ${p.lots.map(l=>{ const lv=lotLevel(l); return `<tr><th>${esc(l.code)} · ${esc(l.titre)}</th><td><span class="lvl lvl-${lv}">${lv==="autonome"?"🟢":lv==="lecture"?"🟡":"🔴"}</span></td><td class="${l.schema?"S":""}">${l.schema?"Oui":""}</td>${mxMods.map(m=>{ const ds=(l.deps||[]).filter(d=>d.m===m.id); const t=ds.some(d=>d.t==="M")?"M":ds.length?"L":""; return `<td class="${t}" title="${esc(ds.map(d=>d.faire).join(" · "))}">${t==="M"?"Modif":t==="L"?"Lecture":""}</td>`; }).join("")}</tr>`; }).join("")}</tbody></table></div>`;
+  const phases=(p.phases||[]).filter(ph=>S.pPhase==="tous"||ph.id===S.pPhase);
+  const lotsHtml=phases.map(ph=>{ const ls=p.lots.filter(l=>l.phase===ph.id).sort((a,b)=>(a.ordre||0)-(b.ordre||0)); if(!ls.length) return "";
+    return `<section class="phase"><div class="phase-h"><span class="pk">${esc(ph.code||"")}</span><h2>${esc(ph.titre)}</h2></div><p class="hint">${inl(ph.desc||"")}</p>
+    ${ls.map(l=>{ const lv=lotLevel(l), st=l.statut||"a_faire";
+      return `<article class="lot s-${st}"><div class="lot-h"><div class="lt"><span class="lc">${esc(l.code)}</span><h3>${inl(l.titre)}</h3><span class="lvl lvl-${lv}">${LVL[lv]}</span></div>${statusSelect("lo-"+l.id,st,LOT_ST,"lotStatut")}</div>
+        <div class="meta2">${l.exig?`<span>${esc(l.exig)}</span>`:""}${(l.bloque||[]).map(b=>`<span class="blk">Attend l'arbitrage ${esc(b)}</span>`).join("")}${l.schema?`<span class="sch">Schéma : ${esc(l.schema)}</span>`:""}</div>
+        <div class="prose">${md(l.objectif||"")}</div>
+        ${l.fichiers&&l.fichiers.length?`<div><div class="eyebrow" style="margin-bottom:4px">Dans le module ${esc(MODN())}</div><ul class="reflist">${l.fichiers.map(f=>`<li>${esc(f)}</li>`).join("")}</ul></div>`:""}
+        ${(l.deps||[]).length?`<div class="tbl"><table class="deps"><thead><tr><th>Module</th><th>Type</th><th>Fonction / fichier</th><th>Quoi faire</th></tr></thead><tbody>
+          ${l.deps.map(d=>`<tr><td><button class="btn ghost" style="padding:0" data-a="pSel" data-k="${esc(d.m)}">${esc((mods[d.m]||{}).nom||d.m)}</button></td><td>${depBadge(d)}</td><td class="mono" style="font-size:12px">${esc(d.quoi)}</td><td>${inl(d.faire)}</td></tr>`).join("")}</tbody></table></div>`
+          :`<p class="hint">Aucune dépendance à un autre module : vous pouvez travailler sans attendre personne.</p>`}
+      </article>`; }).join("")}</section>`; }).join("");
+  return `<div class="panel">
+    <div class="section-h"><div><h2>${esc(p.titre||"Plan de développement")}</h2><p>${inl(p.sousTitre||"")}</p></div>
+      <div class="legend"><span><b>${done}</b> / ${p.lots.length} lots terminés</span></div></div>
+    <div class="rules">${(p.regles||[]).map(r=>`<div><b>${esc(r.t)}</b>${inl(r.d)}</div>`).join("")}</div>
+    <div class="chips"><span class="lvl lvl-autonome">${LVL.autonome} · ${lvlCount.autonome} lots</span><span class="lvl lvl-lecture">${LVL.lecture} · ${lvlCount.lecture} lots</span><span class="lvl lvl-coordination">${LVL.coordination} · ${lvlCount.coordination} lots</span></div>
+    ${(()=>{ const req={}; p.lots.forEach(l=>(l.deps||[]).filter(d=>d.t==="M"&&!isMine(d.m)).forEach(d=>{ (req[d.m]=req[d.m]||[]).push({l,d}); }));
+      const ks=Object.keys(req); if(!ks.length) return "";
+      return `<section class="sec"><h2>Demandes aux autres équipes</h2><p class="hint">Ce que je ne code pas moi-même : à transmettre à l'équipe du module avant de commencer le lot concerné.</p>
+      <div class="tbl"><table class="tbl-plain"><thead><tr><th>Équipe / module</th><th>Lot</th><th>Où</th><th>Demande à formuler</th></tr></thead><tbody>
+      ${ks.map(k=>req[k].map((x,i)=>`<tr>${i===0?`<td rowspan="${req[k].length}"><b>${esc((mods[k]||{}).nom||k)}</b></td>`:""}<td><b>${esc(x.l.code)}</b> ${esc(x.l.titre)}</td><td class="mono" style="font-size:12px">${esc(x.d.quoi)}</td><td>${inl(x.d.faire)}</td></tr>`).join("")).join("")}</tbody></table></div></section>`; })()}
+    <section class="sec"><h2>Carte des dépendances</h2>
+      <p class="hint">Chaque flèche relie un module voisin à ${esc(MODN())}. Couleur selon ce que les lots demandent : 🟢 bleu plein = aucun lot n'y touche, 🟡 orange pointillé = lecture seule de ses fonctions, 🔴 rouge = modification à coordonner. <b>Cliquez sur un module</b> pour voir ses fonctions et ce qu'il faut y faire.</p>
+      <div class="pmap-wrap">${planMap(p)}</div>${detail}</section>
+    <section class="sec"><h2>Matrice lots × modules</h2><p class="hint">Une case vide = le lot ne touche pas ce module. « Lecture » = on appelle une fonction existante sans la modifier. « Modif » = il faut modifier un fichier du module (coordination avec son responsable). « Schéma » = demande à inscrire dans <code>SCHEMA-REQUESTS.md</code>.</p>${matrix}</section>
+    <section class="sec"><h2>Lots dans l'ordre conseillé</h2>
+      <div class="chips"><button class="chip" aria-pressed="${S.pPhase==="tous"}" data-a="pPhase" data-k="tous">Toutes les phases</button>${(p.phases||[]).map(ph=>`<button class="chip" aria-pressed="${S.pPhase===ph.id}" data-a="pPhase" data-k="${ph.id}">${esc(ph.code)} · ${esc(ph.court||ph.titre)}</button>`).join("")}</div>
+      ${lotsHtml}</section>
+    ${cycleSection()}
+  </div>`;
+}
+
+/* ---------- Exigences & recette ---------- */
+function renderExigences(){
+  let per=S.xPer; const isReq=S.xView==="exigences";
+  const pers=perimetres(); if(pers.length&&!pers.some(p=>p[0]===S.xPer)) S.xPer=pers[0][0];
+  per=S.xPer;
+  const items=(isReq?S.exig:S.tests).filter(x=>x.perimetre===per).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+  const map=isReq?COUV:TEST, key=isReq?"couverture":"statut", def=isReq?"a_verifier":"non_execute";
+  const cnt={}; Object.keys(map).forEach(k=>cnt[k]=0); items.forEach(x=>cnt[x[key]||def]++);
+  const list=items.filter(x=>S.xF==="tous"||(x[key]||def)===S.xF);
+  let body="";
+  if(isReq){
+    const groups=[]; const gi={}; list.forEach(x=>{ if(!gi[x.section]){gi[x.section]=[];groups.push(x.section);} gi[x.section].push(x); });
+    body=groups.map(g=>{ const all=items.filter(x=>x.section===g), ok=all.filter(x=>x.couverture==="couvert").length;
+      return `<section class="group"><div class="group-h"><h3>${esc(g)}</h3><span class="gp">${ok} / ${all.length} couvertes<span class="mini"><span style="width:${all.length?ok*100/all.length:0}%"></span></span></span></div>
+      ${gi[g].map(x=>`<div class="req"><div class="rid">${esc(x.id)}<span class="badge crit-${esc(x.criticite)}">${esc(x.criticite)}</span></div>
+        <div><div class="rt">${inl(x.exigence)}</div><div class="rc">${inl(x.criteres)}</div></div>
+        <div>${statusSelect("xc-"+x.id,x.couverture||"a_verifier",COUV,"reqCouv")}<input class="note" id="xn-${x.id}" data-a="reqNote" data-k="${x.id}" value="${esc(x.note||"")}" placeholder="Note d'analyse…" aria-label="Note ${esc(x.id)}"></div></div>`).join("")}</section>`; }).join("");
+  } else {
+    body=`<div class="decs">${list.map(t=>{ const st=t.statut||"non_execute"; return `<article class="tcase s-${st}">
+      <div><div class="th"><span class="tid">${esc(t.id)}</span><span class="tx">${esc(t.exig)}</span><b>${inl(t.scenario)}</b><span class="badge crit-${esc(t.criticite)}">${esc(t.criticite)}</span></div>
+        <dl><dt>Profil testeur</dt><dd>${inl(t.profil)}</dd>${t.preconditions&&t.preconditions!=="—"?`<dt>Préconditions</dt><dd>${inl(t.preconditions)}</dd>`:""}
+        <dt>Étapes</dt><dd>${inl(t.etapes)}</dd><dt>Résultat attendu</dt><dd><b>${inl(t.attendu)}</b></dd></dl></div>
+      <div class="tres">${statusSelect("ts-"+t.id,st,TEST,"testStatut")}
+        <textarea id="tr-${t.id}" data-a="testField" data-f="resultat" data-k="${t.id}" placeholder="Résultat obtenu…" aria-label="Résultat obtenu ${esc(t.id)}">${esc(t.resultat||"")}</textarea>
+        <input id="ta-${t.id}" data-a="testField" data-f="anomalie" data-k="${t.id}" value="${esc(t.anomalie||"")}" placeholder="N° d'anomalie" aria-label="Numéro d'anomalie ${esc(t.id)}">
+        ${t.testeLe?`<span class="hint">Exécuté le ${fmtDate(t.testeLe)}</span>`:""}</div></article>`; }).join("")}</div>`;
+  }
+  return `<div class="panel">
+    <div class="section-h"><div><h2>${isReq?"Exigences fonctionnelles":"Cahier de recette"}</h2><p>${isReq
+      ?(S.fiche.sourceExigences?`Source : ${S.fiche.sourceExigences}. `:"")+"La couverture indique ce que le code actuel réalise déjà : à confirmer pendant la recette."
+      :"Colonnes Résultat obtenu, Statut et N° d'anomalie à remplir pendant l'exécution de la recette. Un PV de recette par périmètre."}</p></div></div>
+    <div class="mcd-bar"><div class="chips">
+      <button class="chip" aria-pressed="${isReq}" data-a="xView" data-k="exigences">Exigences · ${S.exig.length}</button>
+      <button class="chip" aria-pressed="${!isReq}" data-a="xView" data-k="recette">Recette · ${S.tests.length}</button></div>
+      <div class="chips">${pers.map(([k,l])=>`<button class="chip" aria-pressed="${per===k}" data-a="xPer" data-k="${k}">${esc(l)} · ${(isReq?S.exig:S.tests).filter(x=>x.perimetre===k).length}</button>`).join("")}</div></div>
+    <div class="chips"><button class="chip" aria-pressed="${S.xF==="tous"}" data-a="xF" data-k="tous">Tous · ${items.length}</button>
+      ${Object.keys(map).map(k=>`<button class="chip" aria-pressed="${S.xF===k}" data-a="xF" data-k="${k}">${map[k]} · ${cnt[k]}</button>`).join("")}</div>
+    ${body||`<p class="notice">Aucun élément pour ce filtre.</p>`}</div>`;
+}
+
+function render(){
+  renderSummary(); renderTabs();
+  const m=$("main");
+  if(S.dbOff){ m.innerHTML=`<p class="notice">Les données du tableau de bord ne sont pas disponibles dans cette vue. Ouvrez la page depuis claude.ai avec votre compte pour la consulter et la modifier.</p>`; return; }
+  if(!Object.values(S.loaded).every(Boolean)){ m.innerHTML=`<p class="notice">Chargement des données…</p>`; return; }
+  const sy=window.scrollY;
+  m.innerHTML = S.tab==="apercu"?renderApercu():S.tab==="demarrage"?renderDemarrage():S.tab==="lecture"?renderLecture():S.tab==="merise"?renderMerise():S.tab==="plan"?renderPlan():S.tab==="devenv"?renderDevenv():S.tab==="exigences"?renderExigences():S.tab==="fonctionnalites"?renderFeats():renderDecs();
+  window.scrollTo(0,sy);
+}
+
+/* ---------- écritures ---------- */
+async function w(fn,ok){ if(!S.db){ toast("Modification impossible : données indisponibles."); return false; }
+  try{ await fn(); if(ok) toast(ok); return true; }catch(e){ toast(e&&e.code==="invalid_argument"?"Vous n'avez pas le droit de modifier ce tableau.":"Échec de l'enregistrement. Réessayez."); return false; } }
+const docRef = (col,id) => S.db.collection(col).doc(id);
+const COL = {feat:"fonctionnalites",dec:"decisions",step:"demarrage"};
+
+document.addEventListener("input",e=>{ if(e.target.id==="q"){ S.q=e.target.value; clearTimeout(S.qt); S.qt=setTimeout(()=>{ const pos=e.target.selectionStart; render(); const el=$("q"); if(el){el.focus(); try{el.setSelectionRange(pos,pos);}catch(_){}} },200); } });
+
+document.addEventListener("change",async e=>{
+  const t=e.target, a=t.dataset.a; if(!a) return;
+  if(a==="featStatus"){ const id=t.id.slice(3), s=t.value; t.blur();
+    const f=S.feats.find(x=>x.id===id); const patch={statut:s}; if(s==="termine"&&!(f&&f.termineLe)) patch.termineLe=today(); if(s!=="termine") patch.termineLe="";
+    await w(()=>docRef("fonctionnalites",id).update(patch), "Statut mis à jour : "+FEAT[s]); }
+  if(a==="decStatus"){ const id=t.id.slice(3), s=t.value; t.blur();
+    const d=S.decs.find(x=>x.id===id); const patch={statut:s}; if(s!=="a_trancher"&&!(d&&d.date)) patch.date=today();
+    await w(()=>docRef("decisions",id).update(patch), "Arbitrage : "+DEC[s]); }
+  if(a==="lotStatut"){ const id=t.id.slice(3), s=t.value; t.blur(); const data=JSON.parse(JSON.stringify(S.plan)); delete data.id;
+    const l=data.lots.find(x=>x.id===id); if(!l) return; l.statut=s; l.majLe=today();
+    await w(()=>S.db.doc("plan/dev").set(data),`${l.code} : ${LOT_ST[s]}`); }
+  if(a==="reqCouv"){ const id=t.id.slice(3), s=t.value; t.blur(); await w(()=>docRef("exigences",id).update({couverture:s}),`${id} : ${COUV[s]}`); }
+  if(a==="reqNote"){ await w(()=>docRef("exigences",t.dataset.k).update({note:t.value.trim()}),"Note enregistrée"); }
+  if(a==="testStatut"){ const id=t.id.slice(3), s=t.value; t.blur(); await w(()=>docRef("recette",id).update({statut:s,testeLe:s==="non_execute"?"":today()}),`${id} : ${TEST[s]}`); }
+  if(a==="testField"){ await w(()=>docRef("recette",t.dataset.k).update({[t.dataset.f]:t.value.trim()}),"Enregistré"); }
+  if(a==="toggleStep"){ const id=t.dataset.k; const on=t.checked; t.blur();
+    if(!(await w(()=>docRef("demarrage",id).update({fait:on,faitLe:on?today():""})))) return;
+    for(const d of S.docs.filter(x=>x.etape===id && !!x.lu!==on))
+      await w(()=>docRef("lectures",d.id).update({lu:on,luLe:on?today():""}), on?"Étape cochée · document marqué comme lu":"Étape décochée · document remis à lire"); }
+});
+
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-a]"); if(!b || b.tagName==="SELECT" || b.type==="checkbox") return;
+  const a=b.dataset.a, k=b.dataset.k;
+  switch(a){
+    case "tab": S.tab=k; try{localStorage.setItem("suivi-module-tab",k);}catch(_){} render(); window.scrollTo({top:0}); return;
+    case "edit": S.edit[k]=true; render(); { const el=document.querySelector("#main textarea, #main .form.inline input"); if(el) el.focus(); } return;
+    case "cancel": delete S.edit[k]; S.confirm=null; render(); return;
+    case "openAdd": S.add[k]=true; render(); return;
+    case "closeAdd": S.add[k]=false; render(); return;
+    case "openDoc": S.docSel=k; render(); { const r=$("reader"); if(r) r.scrollIntoView({block:"start"}); } return;
+    case "toggleRead": S.showRead=!S.showRead; render(); return;
+    case "unread": {
+      const d=S.docs.find(x=>x.id===k); const st=d&&d.etape&&S.steps.find(s=>s.id===d.etape);
+      if(!(await w(()=>docRef("lectures",k).update({lu:false,luLe:""}),"Remis dans la liste à lire"))) return;
+      if(st && st.fait) await w(()=>docRef("demarrage",st.id).update({fait:false,faitLe:""}),"Remis à lire · étape décochée");
+      return; }
+    case "readDone": {
+      const d=S.docs.find(x=>x.id===k); if(!d) return;
+      const todo=[...S.docs].filter(x=>!x.lu&&x.id!==k).sort((a,b)=>(a.ordre||0)-(b.ordre||0));
+      const st=d.etape&&S.steps.find(s=>s.id===d.etape);
+      if(!(await w(()=>docRef("lectures",k).update({lu:true,luLe:today()}),"Document marqué comme lu"))) return;
+      if(st && !st.fait){
+        const rest=S.docs.filter(x=>x.etape===st.id && x.id!==k && !x.lu).length;
+        if(!rest) await w(()=>docRef("demarrage",st.id).update({fait:true,faitLe:today()}),`Document lu · étape « ${st.titre.replace(/`/g,"")} » cochée`);
+        else toast(`Document lu · encore ${rest} document${rest>1?"s":""} pour terminer l'étape « ${st.titre.replace(/`/g,"")} »`);
+      }
+      S.docSel=todo[0]?todo[0].id:null; S.showRead=false; render(); window.scrollTo({top:0}); return; }
+    case "goDoc": S.tab="lecture"; S.docSel=k; S.showRead=true; try{localStorage.setItem("suivi-module-tab","lecture");}catch(_){} render(); window.scrollTo({top:0}); return;
+    case "pSel": S.pSel = (k && S.pSel!==k) ? k : null; render(); if(S.pSel){ const b=document.querySelector(".pmap-wrap + .block"); if(b) b.scrollIntoView({block:"nearest"}); } return;
+    case "pPhase": S.pPhase=k; render(); return;
+    case "copy": { const txt=CMDS[+k]||""; const ok=()=>toast("Commande copiée");
+      const fallback=()=>{ const el=$("cmd-"+k); if(!el) return; const r=document.createRange(); r.selectNodeContents(el); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("Sélectionnée : Ctrl+C pour copier"); };
+      try{ navigator.clipboard.writeText(txt).then(ok,fallback); }catch(_){ fallback(); } return; }
+    case "mVue": S.mVue=k; render(); return;
+    case "mAttrs": S.mAttrs=!S.mAttrs; render(); return;
+    case "mZoom": S.mZoom = k==="1"?1 : Math.min(2,Math.max(0.4, Math.round((S.mZoom+(k==="+"?0.1:-0.1))*10)/10)); render(); return;
+    case "mJson": S.mJson=!S.mJson; render(); return;
+    case "saveMcd": { let data; try{ data=JSON.parse($("mcd-json").value); }catch(err){ toast("JSON invalide : "+err.message); return; }
+      if(!Array.isArray(data.entites)||!Array.isArray(data.assocs)||!Array.isArray(data.vues)){ toast("Le modèle doit contenir entites, assocs et vues."); return; }
+      delete data.id; if(await w(()=>S.db.doc("merise/mcd").set(data),"Modèle enregistré")){ S.mJson=false; render(); } return; }
+    case "xView": S.xView=k; S.xF="tous"; render(); return;
+    case "xPer": S.xPer=k; render(); return;
+    case "xF": S.xF=k; render(); return;
+    case "fF": S.fF=k; render(); return;
+    case "fD": S.fD=k; render(); return;
+    case "askDel": S.confirm=b.dataset.kind+":"+k; render(); return;
+    case "noDel": S.confirm=null; render(); return;
+    case "del": { const kind=b.dataset.kind; if(await w(()=>docRef(COL[kind],k).delete(),"Supprimé")){ delete S.edit[kind+":"+k]; S.confirm=null; render(); } return; }
+    case "saveFiche": { const v=$("fx-"+k).value; const next=Object.assign({},S.fiche,{[k]:v}); delete next.id;
+      if(await w(()=>S.db.doc("fiche/main").set(next),"Enregistré")){ delete S.edit["fiche:"+k]; render(); } return; }
+    case "markDone": await w(()=>docRef("fonctionnalites",k).update({statut:"termine",termineLe:today()}),"Bravo, fonctionnalité terminée"); return;
+    case "saveFeat": case "addFeat": {
+      const p=a==="addFeat"?"nf":"fe-"+k; const titre=val(p+"-titre"); if(!titre){ toast("Donnez un titre à la fonctionnalité."); return; }
+      const data={titre,palier:val(p+"-palier"),statut:$(p+"-statut").value,ref:val(p+"-ref"),note:val(p+"-note"),description:val(p+"-description")};
+      if(a==="addFeat"){ data.ordre=Date.now(); data.termineLe=data.statut==="termine"?today():"";
+        if(await w(()=>docRef("fonctionnalites",newId("f")).set(data),"Fonctionnalité ajoutée")){ S.add.feat=false; render(); } }
+      else { const f=S.feats.find(x=>x.id===k); if(data.statut==="termine"&&!(f&&f.termineLe)) data.termineLe=today();
+        if(await w(()=>docRef("fonctionnalites",k).update(data),"Enregistré")){ delete S.edit["feat:"+k]; render(); } }
+      return; }
+    case "saveDec": case "addDec": {
+      const p=a==="addDec"?"nd":"de-"+k; const sujet=val(p+"-sujet"); if(!sujet){ toast("Formulez la question à trancher."); return; }
+      const data={sujet}; ["code","contexte","recommandation","decision","par","date","ref"].forEach(f=>data[f]=val(p+"-"+f)); data.statut=$(p+"-statut").value;
+      if(a==="addDec"){ data.ordre=Date.now(); if(await w(()=>docRef("decisions",newId("d")).set(data),"Arbitrage ajouté")){ S.add.dec=false; render(); } }
+      else if(await w(()=>docRef("decisions",k).update(data),"Enregistré")){ delete S.edit["dec:"+k]; render(); }
+      return; }
+    case "saveStep": case "addStep": {
+      const p=a==="addStep"?"ns":"se-"+k; const titre=val(p+"-titre"); if(!titre){ toast("Décrivez l'étape."); return; }
+      const data={titre,detail:val(p+"-detail")};
+      if(a==="addStep"){ Object.assign(data,{fait:false,faitLe:"",ordre:Date.now()}); if(await w(()=>docRef("demarrage",newId("s")).set(data),"Étape ajoutée")){ S.add.step=false; render(); } }
+      else if(await w(()=>docRef("demarrage",k).update(data),"Enregistré")){ delete S.edit["step:"+k]; render(); }
+      return; }
+  }
+});
+
+/* ---------- données ---------- */
+function setSync(state,label){ const el=$("sync"); el.className="sync "+state; el.querySelector("span").textContent=label; }
+render();
+
+/* ---------- mode local (hors claude.ai) ---------- */
+function localDb(seed){
+  const UNIQ=new Set(["fiche","plan","cycle","merise","dev"]);
+  const h=JSON.stringify(seed); let hash=0; for(let i=0;i<h.length;i++){ hash=(hash*31+h.charCodeAt(i))|0; }
+  const KEY="suivi-module-local:"+(((seed["fiche/main"]||{}).code)||"module");
+  let store=JSON.parse(h), dirty=false;
+  try{ const saved=JSON.parse(localStorage.getItem(KEY)||"null"); if(saved&&saved.base===hash){ store=saved.data; dirty=!!saved.dirty; } }catch(_){}
+  const subs=[];
+  const persist=()=>{ dirty=true; try{ localStorage.setItem(KEY,JSON.stringify({base:hash,data:store,dirty:true})); }catch(_){} subs.forEach(f=>f()); localDirty(true); };
+  const docSnap=p=>({exists:store[p]!==undefined,data:()=>JSON.parse(JSON.stringify(store[p]||{}))});
+  const colSnap=c=>({docs:Object.entries(store[c]||{}).map(([id,v])=>({id,data:()=>JSON.parse(JSON.stringify(v))}))});
+  const listen=(fn,emit)=>{ const f=()=>setTimeout(()=>fn(emit()),0); subs.push(f); f(); return ()=>{}; };
+  const clean=d=>{ const o=JSON.parse(JSON.stringify(d)); delete o.id; return o; };
+  const api={
+    doc(path){ return {
+      onSnapshot:(fn)=>listen(fn,()=>docSnap(path)),
+      async set(d){ store[path]=clean(d); persist(); },
+      async update(d){ store[path]=Object.assign(store[path]||{},clean(d)); persist(); } }; },
+    collection(c){ return {
+      onSnapshot:(fn)=>listen(fn,()=>colSnap(c)),
+      doc(id){ return {
+        async set(d){ (store[c]=store[c]||{})[id]=clean(d); persist(); },
+        async update(d){ (store[c]=store[c]||{})[id]=Object.assign(store[c][id]||{},clean(d)); persist(); },
+        async delete(){ if(store[c]) delete store[c][id]; persist(); } }; } }; },
+    exporter(){ return JSON.stringify(store,null,1); },
+    estModifie(){ return dirty; }
+  };
+  return api;
+}
+function localDirty(on){ const b=document.getElementById("localExport"); if(b) b.textContent=on?"Exporter les modifications":"Exporter les données"; }
+function localBouton(db){
+  const s=document.getElementById("sync"); if(!s||document.getElementById("localExport")) return;
+  const b=document.createElement("button"); b.id="localExport"; b.className="btn"; b.style.marginLeft="8px";
+  b.title="Télécharge remplissage.json : remplacez le fichier du projet par celui-ci pour garder vos modifications.";
+  b.addEventListener("click",()=>{ const blob=new Blob([db.exporter()],{type:"application/json"}); const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="remplissage.json"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); });
+  s.insertAdjacentElement("afterend",b); localDirty(db.estModifie());
+}
+(async()=>{
+  let db=null, local=false;
+  const seed=document.getElementById("suivi-donnees");
+  if(seed){ try{ db=localDb(JSON.parse(seed.textContent)); local=true; }catch(_){ db=null; } }
+  if(!db){ try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(_){ db=null; } }
+  if(!db){ S.dbOff=true; setSync("off","Hors ligne"); render(); return; }
+  S.db=db; setSync("on",local?"Mode local":"Synchronisé"); if(local) localBouton(db);
+  const onErr = () => setSync("off","Synchronisation interrompue — rechargez la page");
+  const toList = snap => snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+  db.doc("fiche/main").onSnapshot(s=>{ S.fiche=s.exists?Object.assign({},s.data()):{}; S.loaded.fiche=true; schedule(); },onErr);
+  db.collection("fonctionnalites").onSnapshot(s=>{ S.feats=toList(s); S.loaded.feats=true; schedule(); },onErr);
+  db.collection("decisions").onSnapshot(s=>{ S.decs=toList(s); S.loaded.decs=true; schedule(); },onErr);
+  db.collection("demarrage").onSnapshot(s=>{ S.steps=toList(s); S.loaded.steps=true; schedule(); },onErr);
+  db.collection("lectures").onSnapshot(s=>{ S.docs=toList(s); S.loaded.docs=true; schedule(); },onErr);
+  db.doc("merise/mcd").onSnapshot(s=>{ if(S.drag) return; S.mcd=s.exists?JSON.parse(JSON.stringify(s.data())):null; S.loaded.mcd=true; schedule(); },onErr);
+  db.doc("dev/boucle").onSnapshot(s=>{ S.devenv=s.exists?s.data():null; schedule(); },onErr);
+  db.doc("cycle/vie").onSnapshot(s=>{ S.cycle=s.exists?s.data():null; schedule(); },onErr);
+  db.doc("plan/dev").onSnapshot(s=>{ S.plan=s.exists?JSON.parse(JSON.stringify(s.data())):null; S.loaded.plan=true; schedule(); },onErr);
+  db.collection("exigences").onSnapshot(s=>{ S.exig=toList(s); S.loaded.exig=true; schedule(); },onErr);
+  db.collection("recette").onSnapshot(s=>{ S.tests=toList(s); S.loaded.tests=true; schedule(); },onErr);
+})();
+})();
+</script>
+
+</body></html>
